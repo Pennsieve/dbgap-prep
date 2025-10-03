@@ -1,7 +1,6 @@
-package dbgap
+package dd
 
 import (
-	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"strings"
 )
 
@@ -25,7 +24,7 @@ type Variable struct {
 	Description string
 	Type        Type
 	// Values should be left nil (or empty) if Type does not include EncodedValueType
-	Values []dd.EncodedValue
+	Values []EncodedValue
 }
 
 func (v Variable) ToDDRow() []any {
@@ -39,5 +38,11 @@ func (v Variable) ToDDRow() []any {
 var SubjectIDVar = Variable{
 	Name:        "SUBJECT_ID",
 	Description: "Subject ID",
+	Type:        StringType,
+}
+
+var SampleIDVar = Variable{
+	Name:        "SAMPLE_ID",
+	Description: "Sample ID",
 	Type:        StringType,
 }

@@ -1,4 +1,4 @@
-package subjectconsent
+package models
 
 import (
 	"github.com/google/uuid"

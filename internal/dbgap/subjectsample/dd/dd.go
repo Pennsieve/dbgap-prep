@@ -2,16 +2,14 @@ package dd
 
 import (
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
-	"github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent/models"
 )
 
 var Spec = dd.Spec{
-	FileName:  "2b_SubjectConsent_DD.xlsx",
-	SheetName: "2b_SubjectConsent_DD",
+	FileName:  "3b_SSM_DD.xlsx",
+	SheetName: "3b_SSM_DD",
 	Rows: [][]any{
 		{dd.VarNameColumn, dd.VarDescColumn, dd.TypeColumn, dd.ValuesColumn},
 		dd.SubjectIDVar.ToDDRow(),
-		models.ConsentVar.ToDDRow(),
-		models.SexVar.ToDDRow(),
+		dd.SampleIDVar.ToDDRow(),
 	},
 }

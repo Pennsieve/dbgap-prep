@@ -2,10 +2,10 @@ package app
 
 import (
 	"fmt"
-	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
-	scdd "github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent/dd"
-	scds "github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent/ds"
+	"github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent"
+	"github.com/pennsieve/dbgap-prep/internal/dbgap/subjectsample"
 	"github.com/pennsieve/dbgap-prep/internal/logging"
+	"github.com/pennsieve/dbgap-prep/internal/samples"
 	"github.com/pennsieve/dbgap-prep/internal/subjects"
 	"github.com/pennsieve/dbgap-prep/internal/utils"
 	"github.com/xuri/excelize/v2"
@@ -52,30 +52,35 @@ func (a *App) Run() error {
 		// Nothing to do. Or should we create empty dbGaP files?
 		return nil
 	}
-	subjectConsentDDPath := filepath.Join(a.OutputDirectory, scdd.Spec.FileName)
 
-	if err := dd.Write(subjectConsentDDPath, scdd.Spec); err != nil {
-		return err
-	}
-
-	logger.Info("wrote subject consent DD file", slog.String("file", subjectConsentDDPath))
-
-	subjectConsentDSPath := filepath.Join(a.OutputDirectory, scds.Spec.FileName)
-	if err := scds.Write(subjectConsentDSPath, subs); err != nil {
-		return err
-	}
-
-	logger.Info("wrote subject consent DS file", slog.String("file", subjectConsentDSPath))
-
-	samplesPath := filepath.Join(a.InputDirectory, samplesFileName)
-	samplesLogger := logger.With(slog.String("file", samplesPath))
-	samples, err := openExcelInput(samplesPath)
+	subjectsConsents, err := subjectconsent.WriteFiles(a.OutputDirectory, subs)
 	if err != nil {
 		return err
 	}
-	defer utils.CloseExcelFile(samples, samplesLogger)
+
+	samplesPath := filepath.Join(a.InputDirectory, samplesFileName)
+	samplesLogger := logger.With(slog.String("file", samplesPath))
+	samplesFile, err := openExcelInput(samplesPath)
+	if err != nil {
+		return err
+	}
+	defer utils.CloseExcelFile(samplesFile, samplesLogger)
 
 	samplesLogger.Info("reading samples file")
+
+	samps, err := samples.FromFile(samplesFile)
+	if err != nil {
+		return err
+	}
+
+	if len(samps) == 0 {
+		samplesLogger.Info("no samples found")
+		return nil
+	}
+
+	if err := subjectsample.WriteFiles(a.OutputDirectory, subjectsConsents, samps); err != nil {
+		return err
+	}
 
 	return nil
 }

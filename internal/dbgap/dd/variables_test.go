@@ -1,8 +1,7 @@
-package dbgap
+package dd
 
 import (
 	"github.com/google/uuid"
-	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -13,10 +12,10 @@ func TestVariable_ToDDRow_EncodedValues(t *testing.T) {
 		Name:        uuid.NewString(),
 		Description: uuid.NewString(),
 		Type:        EncodedValueType,
-		Values: []dd.EncodedValue{
-			dd.NewEncodedValue("1", uuid.NewString()),
-			dd.NewEncodedValue("2", uuid.NewString()),
-			dd.NewEncodedValue("OTHER", uuid.NewString()),
+		Values: []EncodedValue{
+			NewEncodedValue("1", uuid.NewString()),
+			NewEncodedValue("2", uuid.NewString()),
+			NewEncodedValue("OTHER", uuid.NewString()),
 		},
 	}
 
@@ -29,9 +28,9 @@ func TestVariable_ToDDRow_EncodedValues(t *testing.T) {
 	assert.Equal(t, variable.Type, ddRow[2])
 	for i, expectedValue := range variable.Values {
 		actual := ddRow[3+i]
-		var actualValue dd.EncodedValue
+		var actualValue EncodedValue
 		require.IsType(t, actualValue, actual)
-		actualValue = actual.(dd.EncodedValue)
+		actualValue = actual.(EncodedValue)
 
 		assert.Equal(t, expectedValue.String(), actualValue.String())
 	}
