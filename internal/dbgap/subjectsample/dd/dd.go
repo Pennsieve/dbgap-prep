@@ -4,12 +4,14 @@ import (
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 )
 
+var header = []dd.Column{dd.VarNameColumn, dd.VarDescColumn, dd.TypeColumn, dd.ValuesColumn}
+
 var Spec = dd.Spec{
 	FileName:  "3b_SSM_DD.xlsx",
 	SheetName: "3b_SSM_DD",
+	Header:    header,
 	Rows: [][]any{
-		{dd.VarNameColumn, dd.VarDescColumn, dd.TypeColumn, dd.ValuesColumn},
-		dd.SubjectIDVar.ToDDRow(),
-		dd.SampleIDVar.ToDDRow(),
+		dd.SubjectIDVar.ToDDRow(header),
+		dd.SampleIDVar.ToDDRow(header),
 	},
 }

@@ -22,7 +22,7 @@ func (sc SubjectConsent) IsConsented() bool {
 	return len(sc.Consent) == 0 || models.NoConsent.Value != sc.Consent
 }
 
-func ToDSRow(subject subjects.Subject) ([]string, SubjectConsent) {
+func ToRow(subject subjects.Subject) ([]string, SubjectConsent) {
 	// Order of items in slice must match the Header row
 	subjectConsent := SubjectConsent{
 		SubjectID: subject.ID,
@@ -37,11 +37,11 @@ func ToDSRow(subject subjects.Subject) ([]string, SubjectConsent) {
 	return row, subjectConsent
 }
 
-func ToDSRows(subs []subjects.Subject) ([][]string, []SubjectConsent) {
+func ToRows(subs []subjects.Subject) ([][]string, []SubjectConsent) {
 	rows := make([][]string, 0, len(subs))
 	subjectConsents := make([]SubjectConsent, 0, len(subs))
 	for _, subject := range subs {
-		row, sc := ToDSRow(subject)
+		row, sc := ToRow(subject)
 		rows = append(rows, row)
 		subjectConsents = append(subjectConsents, sc)
 	}
@@ -49,7 +49,7 @@ func ToDSRows(subs []subjects.Subject) ([][]string, []SubjectConsent) {
 }
 
 func Write(path string, subs []subjects.Subject) ([]SubjectConsent, error) {
-	rows, subjectConsents := ToDSRows(subs)
+	rows, subjectConsents := ToRows(subs)
 	err := ds.Write(path, Spec, rows)
 	if err != nil {
 		return nil, err

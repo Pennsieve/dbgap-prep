@@ -9,7 +9,7 @@ var MaleSex = dd.NewEncodedValue("1", "Male")
 var FemaleSex = dd.NewEncodedValue("2", "Female")
 var UnknownSex = dd.NewEncodedValue("UNK", "Unknown")
 
-var SexVar = dd.Variable{
+var SexVar = &dd.Variable{
 	Name:        "SEX",
 	Description: "Biological Sex",
 	Type:        dd.EncodedValueType,

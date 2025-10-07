@@ -90,13 +90,13 @@ func FromSheet(header []string, rows [][]string) ([]Sample, error) {
 	return samps, nil
 }
 
-func FromFile(file *excelize.File) ([]Sample, error) {
+func FromFile(file *excelize.File) ([]string, []Sample, error) {
 	var allSamps []Sample
 	var header []string
 	for _, sheetName := range file.GetSheetList() {
 		rows, err := file.GetRows(sheetName)
 		if err != nil {
-			return nil, fmt.Errorf("error getting rows from %s, sheet %s: %w", file.Path, sheetName, err)
+			return nil, nil, fmt.Errorf("error getting rows from %s, sheet %s: %w", file.Path, sheetName, err)
 		}
 
 		if len(rows) > 0 {
@@ -108,14 +108,14 @@ func FromFile(file *excelize.File) ([]Sample, error) {
 			} else if header == nil {
 				// First row in sheet is not a header, and there is no header from
 				// previous sheets, so return error
-				return nil, fmt.Errorf("no header found for sheet %s", sheetName)
+				return nil, nil, fmt.Errorf("no header found for sheet %s", sheetName)
 			}
 			samps, err := FromSheet(header, dataRows)
 			if err != nil {
-				return nil, fmt.Errorf("error getting samples from %s, sheet %s: %w", file.Path, sheetName, err)
+				return nil, nil, fmt.Errorf("error getting samples from %s, sheet %s: %w", file.Path, sheetName, err)
 			}
 			allSamps = append(allSamps, samps...)
 		}
 	}
-	return allSamps, nil
+	return header, allSamps, nil
 }

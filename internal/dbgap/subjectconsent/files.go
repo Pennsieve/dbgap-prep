@@ -27,7 +27,9 @@ func WriteFiles(outputDirectory string, subs []subjects.Subject) ([]scds.Subject
 		return nil, err
 	}
 
-	logger.Info("wrote subject consent DS file", slog.String("file", subjectConsentDSPath))
+	logger.Info("wrote subject consent DS file",
+		slog.String("file", subjectConsentDSPath),
+		slog.Int("subjectConsentCount", len(subjectConsents)))
 
 	return subjectConsents, nil
 }

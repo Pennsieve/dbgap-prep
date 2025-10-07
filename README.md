@@ -6,3 +6,8 @@ This application should be run in a workflow where it is preceeded by https://gi
 
 Documentation on the format and contents of the dbGaP submission files can be found here: https://www.ncbi.nlm.nih.gov/gap/docs/submissionguide.
 
+## running locally
+If you have an example `subjects.xlsx` and `samples.xlsx` files you'd like to test with, run
+```aiignore
+ % go run cmd/local/main.go -i <input directory containing subjects.xlsx and samples.xlsx> -o <output directory>
+```

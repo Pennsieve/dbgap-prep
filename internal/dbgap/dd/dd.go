@@ -37,34 +37,53 @@ const TypeColumn = Column("TYPE")
 
 const ValuesColumn = Column("VALUES")
 
+const UniqueKeyColumn = Column("UNIQUEKEY")
+
 type Spec struct {
 	FileName  string
 	SheetName string
+	Header    []Column
 	Rows      [][]any
+}
+
+func populateRow[T any](f *excelize.File, sheetName string, rowNumber int, row []T, colWidths map[int]int) (map[int]int, error) {
+	if colWidths == nil {
+		colWidths = map[int]int{}
+	}
+
+	// get starting cell for row
+	cell, err := excelize.CoordinatesToCellName(1, rowNumber)
+	if err != nil {
+		return nil, fmt.Errorf("error getting DD file cell name: %w", err)
+	}
+	if err := f.SetSheetRow(sheetName, cell, &row); err != nil {
+		return nil, fmt.Errorf("error setting DD file row %d: %w", rowNumber, err)
+	}
+
+	// update column widths
+	for c, v := range row {
+		str := fmt.Sprint(v) // convert to string for length
+		if len(str) > colWidths[c] {
+			colWidths[c] = len(str)
+		}
+	}
+
+	return colWidths, nil
 }
 
 func Populate(f *excelize.File, sheet string, spec Spec) error {
 
-	// Track max width per column
-	colWidths := map[int]int{}
+	// Write Header
+	colWidths, err := populateRow(f, sheet, 1, spec.Header, nil)
+	if err != nil {
+		return err
+	}
 
 	// Write rows
 	for r, row := range spec.Rows {
-		// get starting cell for row
-		cell, err := excelize.CoordinatesToCellName(1, r+1)
+		colWidths, err = populateRow(f, sheet, r+2, row, colWidths)
 		if err != nil {
-			return fmt.Errorf("error getting DD file cell name: %w", err)
-		}
-		if err := f.SetSheetRow(sheet, cell, &row); err != nil {
-			return fmt.Errorf("error setting DD file row %d: %w", r+1, err)
-		}
-
-		// update column widths
-		for c, v := range row {
-			str := fmt.Sprint(v) // convert to string for length
-			if len(str) > colWidths[c] {
-				colWidths[c] = len(str)
-			}
+			return err
 		}
 	}
 

@@ -19,7 +19,9 @@ func TestVariable_ToDDRow_EncodedValues(t *testing.T) {
 		},
 	}
 
-	ddRow := variable.ToDDRow()
+	header := []Column{VarNameColumn, VarDescColumn, TypeColumn, ValuesColumn}
+
+	ddRow := variable.ToDDRow(header)
 
 	// should have elements for name, description, type, plus one for each encoded
 	require.Len(t, ddRow, 3+len(variable.Values))
@@ -43,7 +45,8 @@ func TestVariable_ToDDRow_NotEncodedValues(t *testing.T) {
 		Type:        StringType,
 	}
 
-	ddRow := variable.ToDDRow()
+	header := []Column{VarNameColumn, VarDescColumn, TypeColumn, ValuesColumn}
+	ddRow := variable.ToDDRow(header)
 
 	// should have elements for name, description, type only
 	require.Len(t, ddRow, 3)

@@ -5,13 +5,15 @@ import (
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent/models"
 )
 
+var header = []dd.Column{dd.VarNameColumn, dd.VarDescColumn, dd.TypeColumn, dd.ValuesColumn}
+
 var Spec = dd.Spec{
 	FileName:  "2b_SubjectConsent_DD.xlsx",
 	SheetName: "2b_SubjectConsent_DD",
+	Header:    header,
 	Rows: [][]any{
-		{dd.VarNameColumn, dd.VarDescColumn, dd.TypeColumn, dd.ValuesColumn},
-		dd.SubjectIDVar.ToDDRow(),
-		models.ConsentVar.ToDDRow(),
-		models.SexVar.ToDDRow(),
+		dd.SubjectIDVar.ToDDRow(header),
+		models.ConsentVar.ToDDRow(header),
+		models.SexVar.ToDDRow(header),
 	},
 }

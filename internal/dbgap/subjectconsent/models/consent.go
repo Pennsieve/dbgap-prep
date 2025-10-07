@@ -12,7 +12,7 @@ var NoConsent = dd.NewEncodedValue("0", "No Consent (NC)")
 
 var GRUConsent = dd.NewEncodedValue("1", "General Research Use (GRU)")
 
-var ConsentVar = dd.Variable{
+var ConsentVar = &dd.Variable{
 	Name:        "CONSENT",
 	Description: "Registered consent groups (Data Use Limitations (DUL)) as determined by submitters' Institutional Review Boards (IRB) or equivalent body.",
 	Type:        dd.EncodedValueType,

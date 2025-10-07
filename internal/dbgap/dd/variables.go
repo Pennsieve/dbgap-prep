@@ -23,25 +23,54 @@ type Variable struct {
 	Name        string
 	Description string
 	Type        Type
+	Attributes  map[Column]any
 	// Values should be left nil (or empty) if Type does not include EncodedValueType
 	Values []EncodedValue
 }
 
-func (v Variable) ToDDRow() []any {
-	row := []any{v.Name, v.Description, v.Type}
-	for _, value := range v.Values {
-		row = append(row, value)
+// ToDDRow returns this variable's attribute values as a slice in the same order
+// as the passed in header. If ValuesColumn appears in header, it must be the final element.
+func (v *Variable) ToDDRow(header []Column) []any {
+	var row []any
+	for _, c := range header {
+		switch c {
+		case VarNameColumn:
+			row = append(row, v.Name)
+		case VarDescColumn:
+			row = append(row, v.Description)
+		case TypeColumn:
+			row = append(row, v.Type)
+		case ValuesColumn:
+			for _, value := range v.Values {
+				row = append(row, value)
+			}
+		default:
+			if attr, ok := v.Attributes[c]; ok {
+				row = append(row, attr)
+			} else {
+				row = append(row, "")
+			}
+
+		}
 	}
 	return row
 }
 
-var SubjectIDVar = Variable{
+func (v *Variable) With(column Column, value any) *Variable {
+	if v.Attributes == nil {
+		v.Attributes = map[Column]any{}
+	}
+	v.Attributes[column] = value
+	return v
+}
+
+var SubjectIDVar = &Variable{
 	Name:        "SUBJECT_ID",
 	Description: "Subject ID",
 	Type:        StringType,
 }
 
-var SampleIDVar = Variable{
+var SampleIDVar = &Variable{
 	Name:        "SAMPLE_ID",
 	Description: "Sample ID",
 	Type:        StringType,
