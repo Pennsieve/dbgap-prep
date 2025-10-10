@@ -4,6 +4,7 @@ import (
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/ds"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent/models"
+	"github.com/pennsieve/dbgap-prep/internal/samples"
 	"github.com/pennsieve/dbgap-prep/internal/subjects"
 )
 
@@ -55,4 +56,37 @@ func Write(path string, subs []subjects.Subject) ([]SubjectConsent, error) {
 		return nil, err
 	}
 	return subjectConsents, nil
+}
+
+// GetConsented returns three slices, the first is those ds.SubjectConsent that are consented (i.e., consent != "0").
+// The second slice are those samples.Sample that have a consented subject in their original samples.xlsx order.
+// The third slice are those same consented samples, but in the order their subjects appear in subjects.xlsx.
+func GetConsented(subjectConsents []SubjectConsent, samps []samples.Sample) ([]SubjectConsent, []samples.Sample, []samples.Sample) {
+	consentedSubjectToPosition := make(map[string]int, len(subjectConsents))
+
+	// Only include subjects with consent
+	consentedSubjects := make([]SubjectConsent, 0, len(subjectConsents))
+	for i, subjectConsent := range subjectConsents {
+		if subjectConsent.IsConsented() {
+			consentedSubjects = append(consentedSubjects, subjectConsent)
+			consentedSubjectToPosition[subjectConsent.SubjectID] = i
+		}
+	}
+
+	consentedSamples := make([]samples.Sample, 0, len(samps))
+	samplesBySubjectPosition := make([][]samples.Sample, len(subjectConsents))
+	for _, sample := range samps {
+		if position, isConsented := consentedSubjectToPosition[sample.SubjectID]; isConsented {
+			consentedSamples = append(consentedSamples, sample)
+			samplesBySubjectPosition[position] = append(samplesBySubjectPosition[position], sample)
+		}
+	}
+
+	// Flatten the samples grouped by subject position to a slice of samples.
+	consentedSamplesOrderedBySubject := make([]samples.Sample, 0, len(consentedSamples))
+	for _, subjectSamples := range samplesBySubjectPosition {
+		consentedSamplesOrderedBySubject = append(consentedSamplesOrderedBySubject, subjectSamples...)
+	}
+
+	return consentedSubjects, consentedSamples, consentedSamplesOrderedBySubject
 }

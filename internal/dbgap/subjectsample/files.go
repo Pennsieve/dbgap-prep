@@ -12,7 +12,7 @@ import (
 
 var logger = logging.PackageLogger("subjectsample")
 
-func WriteFiles(outputDirectory string, consentedSubjectSamples map[string][]samples.Sample) error {
+func WriteFiles(outputDirectory string, consentedSubjectSamples []samples.Sample) error {
 	subjectSampleMappingDDPath := filepath.Join(outputDirectory, ssmdd.Spec.FileName)
 
 	if err := dd.Write(subjectSampleMappingDDPath, ssmdd.Spec); err != nil {
@@ -21,22 +21,13 @@ func WriteFiles(outputDirectory string, consentedSubjectSamples map[string][]sam
 
 	logger.Info("wrote subject sample mapping DD file", slog.String("file", subjectSampleMappingDDPath))
 
-	subjectToSamples := make(map[string][]string, len(consentedSubjectSamples))
-	for subjectID, samps := range consentedSubjectSamples {
-		sampleIDs := make([]string, len(samps))
-		for i, sample := range samps {
-			sampleIDs[i] = sample.ID
-		}
-		subjectToSamples[subjectID] = sampleIDs
-	}
-
 	subjectSampleMappingDSPath := filepath.Join(outputDirectory, ssmds.Spec.FileName)
-	if err := ssmds.Write(subjectSampleMappingDSPath, subjectToSamples); err != nil {
+	if err := ssmds.Write(subjectSampleMappingDSPath, consentedSubjectSamples); err != nil {
 		return err
 	}
 
 	logger.Info("wrote subject sample mapping DS file",
 		slog.String("file", subjectSampleMappingDSPath),
-		slog.Int("subjectSampleCount", len(subjectToSamples)))
+	)
 	return nil
 }

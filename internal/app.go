@@ -15,8 +15,6 @@ import (
 	"path/filepath"
 )
 
-const samplesFileName = "samples.xlsx"
-
 var logger = logging.PackageLogger("app")
 
 type App struct {
@@ -60,7 +58,7 @@ func (a *App) Run() error {
 		return err
 	}
 
-	samplesPath := filepath.Join(a.InputDirectory, samplesFileName)
+	samplesPath := filepath.Join(a.InputDirectory, samples.FileName)
 	samplesLogger := logger.With(slog.String("file", samplesPath))
 	samplesFile, err := openExcelInput(samplesPath)
 	if err != nil {
@@ -75,24 +73,26 @@ func (a *App) Run() error {
 		return err
 	}
 
-	consentedSubjects, consentedSubjectSamples := GetConsented(subjectsConsents, samps)
+	consentedSubjects, consentedSamples, consentedSamplesInSubjectOrder := scds.GetConsented(subjectsConsents, samps)
 	logger.Info("filtered by consent",
 		slog.Int("totalSubjects", len(subs)),
 		slog.Int("consentedSubjects", len(consentedSubjects)),
+		slog.Int("totalSamples", len(samps)),
+		slog.Int("consentedSamples", len(consentedSamples)),
 	)
 
 	//TODO write subject phenotype files
 
-	if len(samps) == 0 {
-		samplesLogger.Info("no samples found")
+	if len(consentedSamples) == 0 {
+		samplesLogger.Info("no consented samples found")
 		return nil
 	}
 
-	if err := subjectsample.WriteFiles(a.OutputDirectory, consentedSubjectSamples); err != nil {
+	if err := subjectsample.WriteFiles(a.OutputDirectory, consentedSamplesInSubjectOrder); err != nil {
 		return err
 	}
 
-	if err := sampleattributes.WriteFiles(a.OutputDirectory, samplesHeader, consentedSubjectSamples); err != nil {
+	if err := sampleattributes.WriteFiles(a.OutputDirectory, samplesHeader, consentedSamples); err != nil {
 		return err
 	}
 
@@ -105,29 +105,4 @@ func openExcelInput(filePath string) (*excelize.File, error) {
 		return nil, fmt.Errorf("error opening input file %s: %w", filePath, err)
 	}
 	return inputFile, nil
-}
-
-// GetConsented returns two maps, the first maps subject id to ds.SubjectConsent.
-// The second map maps subject id to the samples from that subject. Both maps only include a subject if the subject has consent != "0"
-func GetConsented(subjectConsents []scds.SubjectConsent, samps []samples.Sample) (map[string]scds.SubjectConsent, map[string][]samples.Sample) {
-	subjectToSamples := make(map[string][]samples.Sample, len(subjectConsents))
-	for _, sample := range samps {
-		// Don't include samples that have no subject?
-		if sample.HasSubject() {
-			subjectToSamples[sample.SubjectID] = append(subjectToSamples[sample.SubjectID], sample)
-		}
-	}
-
-	subjectByID := make(map[string]scds.SubjectConsent, len(subjectConsents))
-
-	// Remove the subjects with no consent
-	for _, subjectConsent := range subjectConsents {
-		if subjectConsent.IsConsented() {
-			subjectByID[subjectConsent.SubjectID] = subjectConsent
-		} else {
-			delete(subjectToSamples, subjectConsent.SubjectID)
-
-		}
-	}
-	return subjectByID, subjectToSamples
 }

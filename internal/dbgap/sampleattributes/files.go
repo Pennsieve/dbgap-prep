@@ -13,7 +13,7 @@ import (
 
 var logger = logging.PackageLogger("sampleattributes")
 
-func WriteFiles(outputDirectory string, samplesHeader []string, consentedSubjectSamples map[string][]samples.Sample) error {
+func WriteFiles(outputDirectory string, samplesHeader []string, consentedSubjectSamples []samples.Sample) error {
 	attrLabels := HeaderToAttributeLabels(samplesHeader)
 	variables := sampleattributesdd.Variables(attrLabels)
 	spec := sampleattributesdd.Spec(variables)

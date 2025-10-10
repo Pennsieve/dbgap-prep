@@ -3,6 +3,7 @@ package ds
 import (
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/ds"
+	"github.com/pennsieve/dbgap-prep/internal/samples"
 )
 
 var Spec = ds.Spec{
@@ -10,16 +11,12 @@ var Spec = ds.Spec{
 	Header:   []string{dd.SubjectIDVar.Name, dd.SampleIDVar.Name},
 }
 
-func Write(path string, subjectToSamples map[string][]string) error {
+func Write(path string, subjectSamples []samples.Sample) error {
 	var rows [][]string
 
-	for subjectID, sampleIDs := range subjectToSamples {
-		rowsForSubject := make([][]string, 0, len(sampleIDs))
-		for _, sampleID := range sampleIDs {
-			row := []string{subjectID, sampleID}
-			rowsForSubject = append(rowsForSubject, row)
-		}
-		rows = append(rows, rowsForSubject...)
+	for _, sample := range subjectSamples {
+		row := []string{sample.SubjectID, sample.ID}
+		rows = append(rows, row)
 	}
 
 	return ds.Write(path, Spec, rows)

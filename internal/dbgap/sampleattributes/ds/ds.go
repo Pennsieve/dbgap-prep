@@ -31,17 +31,15 @@ func VariableNames(variables []dd.Variable) []string {
 	return names
 }
 
-func ToRows(variableNames []string, consentedSubjectSamples map[string][]samples.Sample) [][]string {
-	var rows [][]string
-	for _, consentedSamples := range consentedSubjectSamples {
-		for _, consentedSample := range consentedSamples {
-			rows = append(rows, ToRow(variableNames, consentedSample))
-		}
+func ToRows(variableNames []string, consentedSubjectSamples []samples.Sample) [][]string {
+	rows := make([][]string, 0, len(consentedSubjectSamples))
+	for _, consentedSample := range consentedSubjectSamples {
+		rows = append(rows, ToRow(variableNames, consentedSample))
 	}
 	return rows
 }
 
-func Write(path string, variables []dd.Variable, consentedSubjectSamples map[string][]samples.Sample) error {
+func Write(path string, variables []dd.Variable, consentedSubjectSamples []samples.Sample) error {
 	variableNames := VariableNames(variables)
 	spec := ds.Spec{FileName: FileName, Header: variableNames}
 	rows := ToRows(variableNames, consentedSubjectSamples)
