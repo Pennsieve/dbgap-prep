@@ -3,6 +3,7 @@ package ds
 import (
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent/models"
 	"github.com/pennsieve/dbgap-prep/internal/samples"
+	"github.com/pennsieve/dbgap-prep/internal/subjects"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -15,6 +16,18 @@ func TestGetConsented(t *testing.T) {
 		{SubjectID: "sub-3", Consent: models.GRUConsent.Value, Sex: models.UnknownSex.Value},
 		{SubjectID: "sub-no-samps", Consent: models.GRUConsent.Value, Sex: models.FemaleSex.Value},
 	}
+	var subs []subjects.Subject
+	for _, subjectConsent := range subjectConsents {
+		// the reverse mapping
+		var sourceSex string
+		if subjectConsent.Sex == models.FemaleSex.Value || subjectConsent.Sex == models.MaleSex.Value {
+			sourceSex = subjectConsent.Sex
+		}
+		subs = append(subs, subjects.Subject{
+			ID:  subjectConsent.SubjectID,
+			Sex: sourceSex,
+		})
+	}
 	samps := []samples.Sample{
 		{ID: "samp-2-sub-3", SubjectID: "sub-3"},
 		{ID: "samp-1-sub-1", SubjectID: "sub-1"},
@@ -24,16 +37,16 @@ func TestGetConsented(t *testing.T) {
 		{ID: "samp-3-sub-3", SubjectID: "sub-3"},
 	}
 
-	consentedSubjects, consentedSamples, consentedSamplesInSubjectOrder := GetConsented(subjectConsents, samps)
+	consentedSubjects, consentedSamples, consentedSamplesInSubjectOrder := GetConsented(subjectConsents, subs, samps)
 
 	// Subjects
 	require.Len(t, consentedSubjects, 3)
 
-	assert.Equal(t, "sub-1", consentedSubjects[0].SubjectID)
+	assert.Equal(t, "sub-1", consentedSubjects[0].ID)
 
-	assert.Equal(t, "sub-3", consentedSubjects[1].SubjectID)
+	assert.Equal(t, "sub-3", consentedSubjects[1].ID)
 
-	assert.Equal(t, "sub-no-samps", consentedSubjects[2].SubjectID)
+	assert.Equal(t, "sub-no-samps", consentedSubjects[2].ID)
 
 	// Samples
 	require.Len(t, consentedSamples, 4)

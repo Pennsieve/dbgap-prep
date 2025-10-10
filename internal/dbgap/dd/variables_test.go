@@ -54,3 +54,22 @@ func TestVariable_ToDDRow_NotEncodedValues(t *testing.T) {
 	assert.Equal(t, variable.Description, ddRow[1])
 	assert.Equal(t, variable.Type, ddRow[2])
 }
+
+func TestVariableNames(t *testing.T) {
+	var variables []Variable
+	for i := 0; i < 10; i++ {
+		variables = append(variables, Variable{
+			Name:        uuid.NewString(),
+			Description: uuid.NewString(),
+			Type:        StringType,
+		})
+	}
+
+	variableNames := VariableNames(variables)
+
+	require.Len(t, variableNames, len(variables))
+
+	for i := range variables {
+		assert.Equal(t, variables[i].Name, variableNames[i])
+	}
+}

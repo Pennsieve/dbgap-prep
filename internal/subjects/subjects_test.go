@@ -15,8 +15,11 @@ func TestFromFile(t *testing.T) {
 	defer func() {
 		assert.NoError(t, file.Close())
 	}()
-	subs, err := FromFile(file)
+	header, subs, err := FromFile(file)
 	require.NoError(t, err)
+
+	assert.Equal(t, IDLabel, header[IDIndex])
+	assert.Equal(t, SexLabel, header[SexIndex])
 
 	require.Len(t, subs, 5)
 

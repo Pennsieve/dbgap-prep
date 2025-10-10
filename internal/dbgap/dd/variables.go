@@ -75,3 +75,11 @@ var SampleIDVar = &Variable{
 	Description: "Sample ID",
 	Type:        StringType,
 }
+
+func VariableNames(variables []Variable) []string {
+	names := make([]string, 0, len(variables))
+	for _, variable := range variables {
+		names = append(names, variable.Name)
+	}
+	return names
+}

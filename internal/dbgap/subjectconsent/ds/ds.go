@@ -58,18 +58,23 @@ func Write(path string, subs []subjects.Subject) ([]SubjectConsent, error) {
 	return subjectConsents, nil
 }
 
-// GetConsented returns three slices, the first is those ds.SubjectConsent that are consented (i.e., consent != "0").
+// GetConsented returns three slices, the first is those subjects.Subject that are consented (i.e., consent != "0").
 // The second slice are those samples.Sample that have a consented subject in their original samples.xlsx order.
 // The third slice are those same consented samples, but in the order their subjects appear in subjects.xlsx.
-func GetConsented(subjectConsents []SubjectConsent, samps []samples.Sample) ([]SubjectConsent, []samples.Sample, []samples.Sample) {
-	consentedSubjectToPosition := make(map[string]int, len(subjectConsents))
+func GetConsented(subjectConsents []SubjectConsent, subs []subjects.Subject, samps []samples.Sample) ([]subjects.Subject, []samples.Sample, []samples.Sample) {
+	consentsBySubjectID := make(map[string]bool, len(subjectConsents))
+	for _, consent := range subjectConsents {
+		consentsBySubjectID[consent.SubjectID] = consent.IsConsented()
+	}
+
+	consentedSubjectToPosition := make(map[string]int, len(subs))
 
 	// Only include subjects with consent
-	consentedSubjects := make([]SubjectConsent, 0, len(subjectConsents))
-	for i, subjectConsent := range subjectConsents {
-		if subjectConsent.IsConsented() {
-			consentedSubjects = append(consentedSubjects, subjectConsent)
-			consentedSubjectToPosition[subjectConsent.SubjectID] = i
+	consentedSubjects := make([]subjects.Subject, 0, len(subs))
+	for i, subject := range subs {
+		if consentsBySubjectID[subject.ID] {
+			consentedSubjects = append(consentedSubjects, subject)
+			consentedSubjectToPosition[subject.ID] = i
 		}
 	}
 

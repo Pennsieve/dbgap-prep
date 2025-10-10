@@ -3,6 +3,7 @@ package samples
 import (
 	"fmt"
 	"github.com/pennsieve/dbgap-prep/internal/logging"
+	"github.com/pennsieve/dbgap-prep/internal/utils"
 	"github.com/xuri/excelize/v2"
 	"log/slog"
 )
@@ -77,45 +78,6 @@ func FromRow(header []string, row []string) (Sample, error) {
 	return sample, nil
 }
 
-func FromSheet(header []string, rows [][]string) ([]Sample, error) {
-	samps := make([]Sample, 0, len(rows))
-
-	for _, row := range rows {
-		if sample, err := FromRow(header, row); err != nil {
-			return nil, err
-		} else {
-			samps = append(samps, sample)
-		}
-	}
-	return samps, nil
-}
-
 func FromFile(file *excelize.File) ([]string, []Sample, error) {
-	var allSamps []Sample
-	var header []string
-	for _, sheetName := range file.GetSheetList() {
-		rows, err := file.GetRows(sheetName)
-		if err != nil {
-			return nil, nil, fmt.Errorf("error getting rows from %s, sheet %s: %w", file.Path, sheetName, err)
-		}
-
-		if len(rows) > 0 {
-			dataRows := rows
-			maybeHeader := rows[0]
-			if IsHeaderRow(maybeHeader) {
-				header = maybeHeader
-				dataRows = rows[1:]
-			} else if header == nil {
-				// First row in sheet is not a header, and there is no header from
-				// previous sheets, so return error
-				return nil, nil, fmt.Errorf("no header found for sheet %s", sheetName)
-			}
-			samps, err := FromSheet(header, dataRows)
-			if err != nil {
-				return nil, nil, fmt.Errorf("error getting samples from %s, sheet %s: %w", file.Path, sheetName, err)
-			}
-			allSamps = append(allSamps, samps...)
-		}
-	}
-	return header, allSamps, nil
+	return utils.FromFile(file, IsHeaderRow, FromRow)
 }

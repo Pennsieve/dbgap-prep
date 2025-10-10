@@ -11,17 +11,8 @@ import (
 	"testing"
 )
 
-func TestVariableNames(t *testing.T) {
-	names := VariableNames(variables)
-	assert.Equal(t, len(variables), len(names))
-
-	assert.Equal(t, variables[0].Name, names[0])
-	assert.Equal(t, variables[len(names)-1].Name, names[len(names)-1])
-
-}
-
 func TestToRow(t *testing.T) {
-	variableNames := VariableNames(variables)
+	variableNames := dd.VariableNames(variables)
 	for _, consentedSample := range consentedSubjectSamples {
 		row := ToRow(variableNames, consentedSample)
 		assert.Len(t, row, len(variableNames))
@@ -34,19 +25,6 @@ func TestToRow(t *testing.T) {
 		}
 
 	}
-}
-
-func TestToRows(t *testing.T) {
-	variableNames := VariableNames(variables)
-	rows := ToRows(variableNames, consentedSubjectSamples)
-
-	require.Len(t, rows, expectedDataRowsCount)
-	assert.NotEqual(t, variableNames, rows[0])
-
-	for _, row := range rows {
-		assert.Len(t, row, len(variableNames))
-	}
-
 }
 
 func TestWrite(t *testing.T) {
@@ -66,7 +44,7 @@ func TestWrite(t *testing.T) {
 	// add one for the header
 	assert.Len(t, records, expectedDataRowsCount+1)
 
-	variableNames := VariableNames(variables)
+	variableNames := dd.VariableNames(variables)
 	assert.Equal(t, variableNames, records[0])
 	assert.NotEqual(t, variableNames, records[1])
 }

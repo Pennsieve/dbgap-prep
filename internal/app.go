@@ -5,6 +5,7 @@ import (
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/sampleattributes"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent"
 	scds "github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent/ds"
+	"github.com/pennsieve/dbgap-prep/internal/dbgap/subjectphenotypes"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/subjectsample"
 	"github.com/pennsieve/dbgap-prep/internal/logging"
 	"github.com/pennsieve/dbgap-prep/internal/samples"
@@ -43,7 +44,7 @@ func (a *App) Run() error {
 
 	subjectsLogger.Info("reading subjects file")
 
-	subs, err := subjects.FromFile(subjectsFile)
+	subjectsHeader, subs, err := subjects.FromFile(subjectsFile)
 	if err != nil {
 		return err
 	}
@@ -73,7 +74,7 @@ func (a *App) Run() error {
 		return err
 	}
 
-	consentedSubjects, consentedSamples, consentedSamplesInSubjectOrder := scds.GetConsented(subjectsConsents, samps)
+	consentedSubjects, consentedSamples, consentedSamplesInSubjectOrder := scds.GetConsented(subjectsConsents, subs, samps)
 	logger.Info("filtered by consent",
 		slog.Int("totalSubjects", len(subs)),
 		slog.Int("consentedSubjects", len(consentedSubjects)),
@@ -81,7 +82,9 @@ func (a *App) Run() error {
 		slog.Int("consentedSamples", len(consentedSamples)),
 	)
 
-	//TODO write subject phenotype files
+	if err := subjectphenotypes.WriteFiles(a.OutputDirectory, subjectsHeader, consentedSubjects); err != nil {
+		return err
+	}
 
 	if len(consentedSamples) == 0 {
 		samplesLogger.Info("no consented samples found")

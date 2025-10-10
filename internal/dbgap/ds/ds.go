@@ -42,3 +42,13 @@ func Write(path string, spec Spec, rows [][]string) error {
 
 	return nil
 }
+
+type ToRowFunc[T any] func(variableNames []string, item T) []string
+
+func ToRows[T any](variableNames []string, items []T, toRow ToRowFunc[T]) [][]string {
+	rows := make([][]string, 0, len(items))
+	for _, consentedSample := range items {
+		rows = append(rows, toRow(variableNames, consentedSample))
+	}
+	return rows
+}
