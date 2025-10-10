@@ -14,8 +14,8 @@ func TestSexFromSubject(t *testing.T) {
 		expectedOutputSex string
 	}{
 		{"empty", "", UnknownSex.Value},
-		{"one", "1", MaleSex.Value},
-		{"two", "2", FemaleSex.Value},
+		{"one", "Male", MaleSex.Value},
+		{"two", "female", FemaleSex.Value},
 		{"three", "3", UnknownSex.Value},
 		{"four", "4", UnknownSex.Value},
 	}
