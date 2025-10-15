@@ -45,19 +45,20 @@ func IsHeaderRow(row []string) bool {
 		row[IDIndex] == IDLabel
 }
 
-// FromRow2 converts the given non-empty, non-header row to a Subject
-func FromRow2(header []string, row []string) (Subject, error) {
+// FromRow converts the given non-empty, non-header row to a Subject
+func FromRow(header []string, row []string) (Subject, []string, error) {
 	if IsHeaderRow(row) {
-		return Subject{}, fmt.Errorf("subjects row is a header")
+		return Subject{}, nil, fmt.Errorf("subjects row is a header")
 	}
 	if len(row) < IDIndex+1 {
-		return Subject{}, fmt.Errorf("subjects row is too short to contain required columns")
+		return Subject{}, nil, fmt.Errorf("subjects row is too short to contain required columns")
 	}
 	var sex string
 	if len(row) > SexIndex {
 		sex = row[SexIndex]
 	}
 	values := make(map[string]string, len(row)-2)
+	nonEmptyKeys := make([]string, len(header))
 	subject := Subject{
 		ID:     row[IDIndex],
 		Sex:    sex,
@@ -67,19 +68,21 @@ func FromRow2(header []string, row []string) (Subject, error) {
 	for i, label := range header {
 		if i == IDIndex || i == SexIndex {
 			//skip these since they are already part of the struct
+			// but always include them in the nonempty keys
+			nonEmptyKeys = append(nonEmptyKeys, label)
 		} else if i < len(row) {
 			// excelize does not give us empty cells beyond the last non-empty cell
-			values[label] = row[i]
-		} else {
-			// maybe we'll have to distinguish between a missing value for a real label
-			// and a bad label?
-			values[label] = ""
+			value := row[i]
+			if len(value) > 0 {
+				nonEmptyKeys = append(nonEmptyKeys, label)
+			}
+			values[label] = value
 		}
 	}
 	logger.Info("found subject", subject.LogGroup())
-	return subject, nil
+	return subject, nonEmptyKeys, nil
 }
 
 func FromFile(subjectsFile *excelize.File) ([]string, []Subject, error) {
-	return utils.FromFile(subjectsFile, IsHeaderRow, FromRow2)
+	return utils.FromFile(subjectsFile, IsHeaderRow, FromRow)
 }

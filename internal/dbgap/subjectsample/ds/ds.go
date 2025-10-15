@@ -7,8 +7,8 @@ import (
 )
 
 var Spec = ds.Spec{
-	FileName: "3a_SSM_DS.txt",
-	Header:   []string{dd.SubjectIDVar.Name, dd.SampleIDVar.Name},
+	FileName:  "3a_SSM_DS.txt",
+	Variables: []dd.Variable{*dd.SubjectIDVar, *dd.SampleIDVar},
 }
 
 func Write(path string, subjectSamples []samples.Sample) error {

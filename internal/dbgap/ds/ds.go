@@ -3,6 +3,7 @@ package ds
 import (
 	"encoding/csv"
 	"fmt"
+	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/logging"
 	"log/slog"
 	"os"
@@ -11,8 +12,8 @@ import (
 var logger = logging.PackageLogger("ds")
 
 type Spec struct {
-	FileName string
-	Header   []string
+	FileName  string
+	Variables []dd.Variable
 }
 
 func Write(path string, spec Spec, rows [][]string) error {
@@ -34,7 +35,8 @@ func Write(path string, spec Spec, rows [][]string) error {
 	tsvWriter.UseCRLF = true
 
 	records := make([][]string, 0, len(rows)+1)
-	records = append(records, spec.Header)
+	header := dd.VariableNames(spec.Variables)
+	records = append(records, header)
 	records = append(records, rows...)
 	if err := tsvWriter.WriteAll(records); err != nil {
 		return fmt.Errorf("error writing records to DS file %s: %s", path, err)
@@ -45,7 +47,9 @@ func Write(path string, spec Spec, rows [][]string) error {
 
 type ToRowFunc[T any] func(variableNames []string, item T) []string
 
-func ToRows[T any](variableNames []string, items []T, toRow ToRowFunc[T]) [][]string {
+func ToRows[T any](variables []dd.Variable, items []T, toRow ToRowFunc[T]) [][]string {
+	variableNames := dd.VariableNames(variables)
+
 	rows := make([][]string, 0, len(items))
 	for _, consentedSample := range items {
 		rows = append(rows, toRow(variableNames, consentedSample))

@@ -48,14 +48,16 @@ func IsHeaderRow(row []string) bool {
 }
 
 // FromRow converts the given non-empty, non-header row to a Sample
-func FromRow(header []string, row []string) (Sample, error) {
+func FromRow(header []string, row []string) (Sample, []string, error) {
 	if IsHeaderRow(row) {
-		return Sample{}, fmt.Errorf("samples row is a header")
+		return Sample{}, nil, fmt.Errorf("samples row is a header")
 	}
 	if len(row) < 2 {
-		return Sample{}, fmt.Errorf("samples row is too short to contain sample and subject ids")
+		return Sample{}, nil, fmt.Errorf("samples row is too short to contain sample and subject ids")
 	}
 	values := make(map[string]string, len(row)-2)
+	nonEmptyKeys := make([]string, 0, len(header))
+
 	sample := Sample{
 		ID:        row[IDIndex],
 		SubjectID: row[SubjectIDIndex],
@@ -64,18 +66,20 @@ func FromRow(header []string, row []string) (Sample, error) {
 
 	for i, label := range header {
 		if i == IDIndex || i == SubjectIDIndex {
-			//skip these since they are already part of the struct
+			//skip these since they are already part of the struct.
+			// but always include them in the nonempty keys
+			nonEmptyKeys = append(nonEmptyKeys, label)
 		} else if i < len(row) {
 			// excelize does not give us empty cells beyond the last non-empty cell
-			values[label] = row[i]
-		} else {
-			// maybe we'll have to distinguish between a missing value for a real label
-			// and a bad label?
-			values[label] = ""
+			value := row[i]
+			if len(value) > 0 {
+				nonEmptyKeys = append(nonEmptyKeys, label)
+			}
+			values[label] = value
 		}
 	}
 	logger.Info("found sample", sample.LogGroup())
-	return sample, nil
+	return sample, nonEmptyKeys, nil
 }
 
 func FromFile(file *excelize.File) ([]string, []Sample, error) {

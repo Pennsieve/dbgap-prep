@@ -9,8 +9,8 @@ import (
 )
 
 var Spec = ds.Spec{
-	FileName: "2a_SubjectConsent_DS.txt",
-	Header:   []string{dd.SubjectIDVar.Name, models.ConsentVar.Name, models.SexVar.Name},
+	FileName:  "2a_SubjectConsent_DS.txt",
+	Variables: []dd.Variable{*dd.SubjectIDVar, *models.ConsentVar, *models.SexVar},
 }
 
 type SubjectConsent struct {

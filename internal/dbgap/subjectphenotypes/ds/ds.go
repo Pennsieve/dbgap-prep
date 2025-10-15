@@ -24,9 +24,8 @@ func ToRow(variableNames []string, subject subjects.Subject) []string {
 }
 
 func Write(path string, variables []dd.Variable, consentedSubjects []subjects.Subject) error {
-	variableNames := dd.VariableNames(variables)
-	rows := ds.ToRows(variableNames, consentedSubjects, ToRow)
+	rows := ds.ToRows(variables, consentedSubjects, ToRow)
 
-	spec := ds.Spec{FileName: FileName, Header: variableNames}
+	spec := ds.Spec{FileName: FileName, Variables: variables}
 	return ds.Write(path, spec, rows)
 }
