@@ -1,13 +1,12 @@
 package subjectsample
 
 import (
-	"encoding/csv"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/subjectsample/ds"
 	"github.com/pennsieve/dbgap-prep/internal/samples"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"os"
+	"github.com/xuri/excelize/v2"
 	"path/filepath"
 	"testing"
 )
@@ -25,12 +24,13 @@ func TestWriteFiles(t *testing.T) {
 
 	require.NoError(t, WriteFiles(outputDir, consentedSamples))
 
-	actualDSFile, err := os.Open(filepath.Join(outputDir, ds.Spec.FileName))
+	actualDSFile, err := excelize.OpenFile(filepath.Join(outputDir, ds.Spec.FileName))
 	require.NoError(t, err)
+	defer func() {
+		assert.NoError(t, actualDSFile.Close())
+	}()
 
-	tsvReader := csv.NewReader(actualDSFile)
-	tsvReader.Comma = '\t'
-	actualRows, err := tsvReader.ReadAll()
+	actualRows, err := actualDSFile.GetRows("Sheet1")
 	require.NoError(t, err)
 
 	// 1 Header + 4 data rows == 5 total rows

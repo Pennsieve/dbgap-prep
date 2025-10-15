@@ -8,6 +8,8 @@ import (
 	"slices"
 )
 
+var HeaderStyle = &excelize.Style{Font: &excelize.Font{Bold: true}}
+
 func CloseExcelFile(inputFile *excelize.File, logger *slog.Logger) {
 	if err := inputFile.Close(); err != nil {
 		logger.Warn("error closing Excel file",
@@ -15,6 +17,8 @@ func CloseExcelFile(inputFile *excelize.File, logger *slog.Logger) {
 			slog.Any("error", err))
 	}
 }
+
+// Reading
 
 type IsHeaderRowFunc func(row []string) bool
 
@@ -79,4 +83,34 @@ func FromFile[T any](file *excelize.File, isHeaderRow IsHeaderRowFunc, fromRow F
 		return !nonEmpty
 	})
 	return header, allItems, nil
+}
+
+// Writing
+
+// PopulateRow writes the slice of T to the given sheet and file at rowNumber (1-based).
+// The returned map maps column numbers (0-based) to widths. If the passed colWidths is not-nil, the returned map is an updated
+// version of colWidths.
+func PopulateRow[T any](f *excelize.File, sheetName string, rowNumber int, row []T, colWidths map[int]int) (map[int]int, error) {
+	if colWidths == nil {
+		colWidths = map[int]int{}
+	}
+
+	// get starting cell for row
+	cell, err := excelize.CoordinatesToCellName(1, rowNumber)
+	if err != nil {
+		return nil, fmt.Errorf("error getting DD file cell name: %w", err)
+	}
+	if err := f.SetSheetRow(sheetName, cell, &row); err != nil {
+		return nil, fmt.Errorf("error setting DD file row %d: %w", rowNumber, err)
+	}
+
+	// update column widths
+	for c, v := range row {
+		str := fmt.Sprint(v) // convert to string for length
+		if len(str) > colWidths[c] {
+			colWidths[c] = len(str)
+		}
+	}
+
+	return colWidths, nil
 }

@@ -1,12 +1,11 @@
 package ds
 
 import (
-	"encoding/csv"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/samples"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"os"
+	"github.com/xuri/excelize/v2"
 	"path/filepath"
 	"testing"
 )
@@ -32,13 +31,13 @@ func TestWrite(t *testing.T) {
 
 	require.NoError(t, Write(path, variables, consentedSubjectSamples))
 
-	actualFile, err := os.Open(path)
+	actualFile, err := excelize.OpenFile(path)
 	require.NoError(t, err)
+	defer func() {
+		assert.NoError(t, actualFile.Close())
+	}()
 
-	tsvReader := csv.NewReader(actualFile)
-	tsvReader.Comma = '\t'
-
-	records, err := tsvReader.ReadAll()
+	records, err := actualFile.GetRows("Sheet1")
 	require.NoError(t, err)
 
 	// add one for the header

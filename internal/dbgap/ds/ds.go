@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/logging"
+	"github.com/pennsieve/dbgap-prep/internal/utils"
+	"github.com/xuri/excelize/v2"
 	"log/slog"
 	"os"
 )
@@ -45,14 +47,61 @@ func Write(path string, spec Spec, rows [][]string) error {
 	return nil
 }
 
+func WriteXLSX(path string, spec Spec, rows [][]string) error {
+	f := excelize.NewFile()
+	defer utils.CloseExcelFile(f, logger)
+
+	sheet := "Sheet1"
+	header := dd.VariableNames(spec.Variables)
+
+	// Write Header
+	colWidths, err := utils.PopulateRow(f, sheet, 1, header, nil)
+	if err != nil {
+		return err
+	}
+
+	// Write rows
+	for r, row := range rows {
+		colWidths, err = utils.PopulateRow(f, sheet, r+2, row, colWidths)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Style header bold
+	if style, err := f.NewStyle(utils.HeaderStyle); err != nil {
+		return fmt.Errorf("error adding header style to DS file: %w", err)
+	} else {
+		if err := f.SetRowStyle(sheet, 1, 1, style); err != nil {
+			return fmt.Errorf("error setting header style to DS file: %w", err)
+		}
+	}
+
+	// Apply column widths (+2 padding)
+	for c, w := range colWidths {
+		if colName, err := excelize.ColumnNumberToName(c + 1); err != nil {
+			return fmt.Errorf("error getting column name of DS file: %w", err)
+		} else {
+			if err := f.SetColWidth(sheet, colName, colName, float64(w+2)); err != nil {
+				return fmt.Errorf("error setting width of column %s in DS file: %w", colName, err)
+			}
+		}
+	}
+
+	if err := f.SaveAs(path); err != nil {
+		return fmt.Errorf("error saving XLSX file to %s: %w", path, err)
+	}
+	return nil
+}
+
 type ToRowFunc[T any] func(variableNames []string, item T) []string
 
 func ToRows[T any](variables []dd.Variable, items []T, toRow ToRowFunc[T]) [][]string {
 	variableNames := dd.VariableNames(variables)
 
 	rows := make([][]string, 0, len(items))
-	for _, consentedSample := range items {
-		rows = append(rows, toRow(variableNames, consentedSample))
+	for _, item := range items {
+		rows = append(rows, toRow(variableNames, item))
 	}
 	return rows
 }

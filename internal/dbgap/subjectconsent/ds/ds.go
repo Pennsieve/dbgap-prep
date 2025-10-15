@@ -9,7 +9,7 @@ import (
 )
 
 var Spec = ds.Spec{
-	FileName:  "2a_SubjectConsent_DS.txt",
+	FileName:  "2a_SubjectConsent_DS.xlsx",
 	Variables: []dd.Variable{*dd.SubjectIDVar, *models.ConsentVar, *models.SexVar},
 }
 
@@ -51,7 +51,7 @@ func ToRows(subs []subjects.Subject) ([][]string, []SubjectConsent) {
 
 func Write(path string, subs []subjects.Subject) ([]SubjectConsent, error) {
 	rows, subjectConsents := ToRows(subs)
-	err := ds.Write(path, Spec, rows)
+	err := ds.WriteXLSX(path, Spec, rows)
 	if err != nil {
 		return nil, err
 	}

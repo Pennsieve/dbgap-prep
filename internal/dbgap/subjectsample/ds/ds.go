@@ -7,7 +7,7 @@ import (
 )
 
 var Spec = ds.Spec{
-	FileName:  "3a_SSM_DS.txt",
+	FileName:  "3a_SSM_DS.xlsx",
 	Variables: []dd.Variable{*dd.SubjectIDVar, *dd.SampleIDVar},
 }
 
@@ -19,5 +19,5 @@ func Write(path string, subjectSamples []samples.Sample) error {
 		rows = append(rows, row)
 	}
 
-	return ds.Write(path, Spec, rows)
+	return ds.WriteXLSX(path, Spec, rows)
 }
