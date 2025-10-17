@@ -24,6 +24,11 @@ type Subject struct {
 	Values map[string]string
 }
 
+func (s Subject) GetValue(key string) (string, bool) {
+	value, ok := s.Values[key]
+	return value, ok
+}
+
 func (s Subject) String() string {
 	return fmt.Sprintf("subject: id = [%s], sex = [%s], valueCount = %d",
 		s.ID,
@@ -46,19 +51,18 @@ func IsHeaderRow(row []string) bool {
 }
 
 // FromRow converts the given non-empty, non-header row to a Subject
-func FromRow(header []string, row []string) (Subject, []string, error) {
+func FromRow(header []string, row []string) (Subject, error) {
 	if IsHeaderRow(row) {
-		return Subject{}, nil, fmt.Errorf("subjects row is a header")
+		return Subject{}, fmt.Errorf("subjects row is a header")
 	}
 	if len(row) < IDIndex+1 {
-		return Subject{}, nil, fmt.Errorf("subjects row is too short to contain required columns")
+		return Subject{}, fmt.Errorf("subjects row is too short to contain required columns")
 	}
 	var sex string
 	if len(row) > SexIndex {
 		sex = row[SexIndex]
 	}
 	values := make(map[string]string, len(row)-2)
-	nonEmptyKeys := make([]string, len(header))
 	subject := Subject{
 		ID:     row[IDIndex],
 		Sex:    sex,
@@ -68,19 +72,13 @@ func FromRow(header []string, row []string) (Subject, []string, error) {
 	for i, label := range header {
 		if i == IDIndex || i == SexIndex {
 			//skip these since they are already part of the struct
-			// but always include them in the nonempty keys
-			nonEmptyKeys = append(nonEmptyKeys, label)
 		} else if i < len(row) {
 			// excelize does not give us empty cells beyond the last non-empty cell
-			value := row[i]
-			if len(value) > 0 {
-				nonEmptyKeys = append(nonEmptyKeys, label)
-			}
-			values[label] = value
+			values[label] = row[i]
 		}
 	}
 	logger.Info("found subject", subject.LogGroup())
-	return subject, nonEmptyKeys, nil
+	return subject, nil
 }
 
 func FromFile(subjectsFile *excelize.File) ([]string, []Subject, error) {

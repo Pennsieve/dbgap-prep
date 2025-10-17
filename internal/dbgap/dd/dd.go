@@ -5,6 +5,7 @@ import (
 	"github.com/pennsieve/dbgap-prep/internal/logging"
 	"github.com/pennsieve/dbgap-prep/internal/utils"
 	"github.com/xuri/excelize/v2"
+	"log/slog"
 )
 
 var logger = logging.PackageLogger("dd")
@@ -83,6 +84,10 @@ func Populate(f *excelize.File, sheet string, spec Spec) error {
 }
 
 func Write(path string, spec Spec) error {
+	if true {
+		logger.Info("no DD file written; DD output turned off", slog.String("path", path))
+		return nil
+	}
 	ddFile := excelize.NewFile()
 	defer utils.CloseExcelFile(ddFile, logger)
 

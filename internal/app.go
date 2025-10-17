@@ -82,6 +82,10 @@ func (a *App) Run() error {
 		slog.Int("consentedSamples", len(consentedSamples)),
 	)
 
+	// prune the subjects header of empty columns so our subject phenotype DD file does not contain
+	// empty columns.
+	subjectsHeader = pruneHeader(subjectsHeader, consentedSubjects, subjects.IDLabel, subjects.SexLabel)
+
 	if err := subjectphenotypes.WriteFiles(a.OutputDirectory, subjectsHeader, consentedSubjects); err != nil {
 		return err
 	}
@@ -95,11 +99,49 @@ func (a *App) Run() error {
 		return err
 	}
 
+	// prune the samples header of empty columns so our samples attributes DD file does not contain
+	// empty columns.
+	samplesHeader = pruneHeader(samplesHeader, consentedSamples, samples.IDLabel, samples.SubjectIDLabel)
 	if err := sampleattributes.WriteFiles(a.OutputDirectory, samplesHeader, consentedSamples); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+type HasValues interface {
+	GetValue(key string) (string, bool)
+}
+
+// pruneHeader returns a string slice that is a subset of header, preserving the order. The returned
+// slice will retain those header values that correspond to at least one non-empty string value in the given slice of HasValues.
+// That is, it is a way of removing header labels that correspond to empty columns. If a header label should be retained even
+// if its column is empty, pass it as a alwaysKeep value.
+func pruneHeader[T HasValues](header []string, haveValues []T, alwaysKeep ...string) []string {
+	keepers := make(map[string]bool, len(header))
+	for _, keeper := range alwaysKeep {
+		keepers[keeper] = true
+	}
+
+	for _, hv := range haveValues {
+		for _, label := range header {
+			if !keepers[label] {
+				if value, ok := hv.GetValue(label); ok && len(value) > 0 {
+					keepers[label] = true
+				}
+			}
+		}
+		if len(keepers) == len(header) {
+			break // all headers accounted for
+		}
+	}
+	pruned := make([]string, 0, len(keepers))
+	for _, label := range header {
+		if keepers[label] {
+			pruned = append(pruned, label)
+		}
+	}
+	return pruned
 }
 
 func openExcelInput(filePath string) (*excelize.File, error) {
