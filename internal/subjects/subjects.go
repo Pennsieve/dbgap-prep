@@ -1,0 +1,86 @@
+package subjects
+
+import (
+	"fmt"
+	"github.com/pennsieve/dbgap-prep/internal/logging"
+	"github.com/pennsieve/dbgap-prep/internal/utils"
+	"github.com/xuri/excelize/v2"
+	"log/slog"
+)
+
+var logger = logging.PackageLogger("subjects")
+
+const FileName = "subjects.xlsx"
+
+const IDIndex = 0
+const IDLabel = "subject id"
+const SexIndex = 4
+const SexLabel = "sex"
+
+type Subject struct {
+	ID  string
+	Sex string
+	// Values maps header labels to corresponding values for this row
+	Values map[string]string
+}
+
+func (s Subject) GetValue(key string) (string, bool) {
+	value, ok := s.Values[key]
+	return value, ok
+}
+
+func (s Subject) String() string {
+	return fmt.Sprintf("subject: id = [%s], sex = [%s], valueCount = %d",
+		s.ID,
+		s.Sex,
+		len(s.Values),
+	)
+}
+
+func (s Subject) LogGroup() slog.Attr {
+	return slog.Group("subject",
+		slog.String("id", s.ID),
+		slog.String("sex", s.Sex),
+		slog.Int("valueCount", len(s.Values)),
+	)
+}
+
+func IsHeaderRow(row []string) bool {
+	return len(row) > 0 &&
+		row[IDIndex] == IDLabel
+}
+
+// FromRow converts the given non-empty, non-header row to a Subject
+func FromRow(header []string, row []string) (Subject, error) {
+	if IsHeaderRow(row) {
+		return Subject{}, fmt.Errorf("subjects row is a header")
+	}
+	if len(row) < IDIndex+1 {
+		return Subject{}, fmt.Errorf("subjects row is too short to contain required columns")
+	}
+	var sex string
+	if len(row) > SexIndex {
+		sex = row[SexIndex]
+	}
+	values := make(map[string]string, len(row)-2)
+	subject := Subject{
+		ID:     row[IDIndex],
+		Sex:    sex,
+		Values: values,
+	}
+
+	for i, label := range header {
+		if i == IDIndex || i == SexIndex {
+			//skip these since they are already part of the struct
+		} else if i < len(row) {
+			// excelize does not give us empty cells beyond the last non-empty cell
+			values[label] = row[i]
+		}
+	}
+	logger.Info("found subject", subject.LogGroup())
+	return subject, nil
+}
+
+func FromFile(subjectsFile *excelize.File) ([]string, []Subject, error) {
+	return utils.FromFile(subjectsFile, IsHeaderRow, FromRow)
+}
