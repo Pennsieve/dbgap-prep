@@ -14,10 +14,12 @@ func TestSexFromSubject(t *testing.T) {
 		expectedOutputSex string
 	}{
 		{"empty", "", UnknownSex.Value},
-		{"one", "Male", MaleSex.Value},
-		{"two", "female", FemaleSex.Value},
+		{"male", "Male", MaleSex.Value},
+		{"female", "female", FemaleSex.Value},
 		{"three", "3", UnknownSex.Value},
 		{"four", "4", UnknownSex.Value},
+		{"F", "F", FemaleSex.Value},
+		{"m", "m", MaleSex.Value},
 	}
 
 	for _, tt := range tests {
