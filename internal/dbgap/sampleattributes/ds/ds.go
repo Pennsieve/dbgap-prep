@@ -6,7 +6,7 @@ import (
 	"github.com/pennsieve/dbgap-prep/internal/samples"
 )
 
-const FileName = "6a_SampleAttributes_DS.xlsx"
+const DefaultFileNameBase = "6a_SampleAttributes_DS"
 
 func ToRow(variableNames []string, sample samples.Sample) []string {
 	row := make([]string, 0, len(variableNames))
@@ -23,9 +23,9 @@ func ToRow(variableNames []string, sample samples.Sample) []string {
 	return row
 }
 
-func Write(path string, variables []dd.Variable, consentedSubjectSamples []samples.Sample) error {
+func Write(writer ds.Writer, variables []dd.Variable, consentedSubjectSamples []samples.Sample) error {
 	rows := ds.ToRows(variables, consentedSubjectSamples, ToRow)
 
-	spec := ds.Spec{FileName: FileName, Variables: variables}
-	return ds.WriteXLSX(path, spec, rows)
+	spec := ds.Spec{Variables: variables}
+	return writer.Write(spec, rows)
 }

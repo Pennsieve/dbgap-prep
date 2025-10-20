@@ -6,6 +6,7 @@ import (
 	"github.com/pennsieve/dbgap-prep/internal/subjects"
 )
 
+const DefaultFileNameBase = "5a_SubjectPhenotypes_DS"
 const FileName = "5a_SubjectPhenotypes_DS.xlsx"
 
 func ToRow(variableNames []string, subject subjects.Subject) []string {
@@ -23,9 +24,9 @@ func ToRow(variableNames []string, subject subjects.Subject) []string {
 	return row
 }
 
-func Write(path string, variables []dd.Variable, consentedSubjects []subjects.Subject) error {
+func Write(writer ds.Writer, variables []dd.Variable, consentedSubjects []subjects.Subject) error {
 	rows := ds.ToRows(variables, consentedSubjects, ToRow)
 
-	spec := ds.Spec{FileName: FileName, Variables: variables}
-	return ds.WriteXLSX(path, spec, rows)
+	spec := ds.Spec{Variables: variables}
+	return writer.Write(spec, rows)
 }

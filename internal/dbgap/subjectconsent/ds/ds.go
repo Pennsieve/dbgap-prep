@@ -8,8 +8,9 @@ import (
 	"github.com/pennsieve/dbgap-prep/internal/subjects"
 )
 
+const DefaultFileNameBase = "2a_SubjectConsent_DS"
+
 var Spec = ds.Spec{
-	FileName:  "2a_SubjectConsent_DS.xlsx",
 	Variables: []dd.Variable{*dd.SubjectIDVar, *models.ConsentVar, *models.SexVar},
 }
 
@@ -49,9 +50,10 @@ func ToRows(subs []subjects.Subject) ([][]string, []SubjectConsent) {
 	return rows, subjectConsents
 }
 
-func Write(path string, subs []subjects.Subject) ([]SubjectConsent, error) {
+func Write(writer ds.Writer, subs []subjects.Subject) ([]SubjectConsent, error) {
 	rows, subjectConsents := ToRows(subs)
-	err := ds.WriteXLSX(path, Spec, rows)
+
+	err := writer.Write(Spec, rows)
 	if err != nil {
 		return nil, err
 	}

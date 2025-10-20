@@ -2,6 +2,7 @@ package sampleattributes
 
 import (
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
+	"github.com/pennsieve/dbgap-prep/internal/dbgap/ds"
 	sampleattributesdd "github.com/pennsieve/dbgap-prep/internal/dbgap/sampleattributes/dd"
 	sampleattributesds "github.com/pennsieve/dbgap-prep/internal/dbgap/sampleattributes/ds"
 
@@ -25,12 +26,12 @@ func WriteFiles(outputDirectory string, samplesHeader []string, consentedSubject
 
 	logger.Info("wrote sample attributes DD file", slog.String("file", sampleAttributesDDPath))
 
-	sampleAttributesDSPath := filepath.Join(outputDirectory, sampleattributesds.FileName)
-	if err := sampleattributesds.Write(sampleAttributesDSPath, variables, consentedSubjectSamples); err != nil {
+	dsWriter := ds.NewXLSXWriter(outputDirectory, sampleattributesds.DefaultFileNameBase)
+	if err := sampleattributesds.Write(dsWriter, variables, consentedSubjectSamples); err != nil {
 		return err
 	}
 
-	logger.Info("wrote sample attributes DS file", slog.String("file", sampleAttributesDSPath))
+	logger.Info("wrote sample attributes DS file", slog.String("file", dsWriter.Path()))
 
 	return nil
 }

@@ -6,12 +6,13 @@ import (
 	"github.com/pennsieve/dbgap-prep/internal/samples"
 )
 
+const DefaultFileNameBase = "3a_SSM_DS"
+
 var Spec = ds.Spec{
-	FileName:  "3a_SSM_DS.xlsx",
 	Variables: []dd.Variable{*dd.SubjectIDVar, *dd.SampleIDVar},
 }
 
-func Write(path string, subjectSamples []samples.Sample) error {
+func Write(writer ds.Writer, subjectSamples []samples.Sample) error {
 	var rows [][]string
 
 	for _, sample := range subjectSamples {
@@ -19,5 +20,5 @@ func Write(path string, subjectSamples []samples.Sample) error {
 		rows = append(rows, row)
 	}
 
-	return ds.WriteXLSX(path, Spec, rows)
+	return writer.Write(Spec, rows)
 }

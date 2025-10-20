@@ -2,12 +2,12 @@ package subjectsample
 
 import (
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
-	"github.com/pennsieve/dbgap-prep/internal/dbgap/subjectsample/ds"
+	"github.com/pennsieve/dbgap-prep/internal/dbgap/ds"
+	ssmds "github.com/pennsieve/dbgap-prep/internal/dbgap/subjectsample/ds"
 	"github.com/pennsieve/dbgap-prep/internal/samples"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/xuri/excelize/v2"
-	"path/filepath"
 	"testing"
 )
 
@@ -22,9 +22,10 @@ func TestWriteFiles(t *testing.T) {
 
 	outputDir := t.TempDir()
 
-	require.NoError(t, WriteFiles(outputDir, consentedSamples))
+	dsWriter := ds.NewXLSXWriter(outputDir, ssmds.DefaultFileNameBase)
+	require.NoError(t, ssmds.Write(dsWriter, consentedSamples))
 
-	actualDSFile, err := excelize.OpenFile(filepath.Join(outputDir, ds.Spec.FileName))
+	actualDSFile, err := excelize.OpenFile(dsWriter.Path())
 	require.NoError(t, err)
 	defer func() {
 		assert.NoError(t, actualDSFile.Close())
