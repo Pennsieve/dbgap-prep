@@ -2,35 +2,27 @@ package sampleattributes
 
 import (
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
+	"github.com/pennsieve/dbgap-prep/internal/dbgap/ds"
 	sampleattributesdd "github.com/pennsieve/dbgap-prep/internal/dbgap/sampleattributes/dd"
 	sampleattributesds "github.com/pennsieve/dbgap-prep/internal/dbgap/sampleattributes/ds"
 
-	"github.com/pennsieve/dbgap-prep/internal/logging"
 	"github.com/pennsieve/dbgap-prep/internal/samples"
-	"log/slog"
-	"path/filepath"
 )
-
-var logger = logging.PackageLogger("sampleattributes")
 
 func WriteFiles(outputDirectory string, samplesHeader []string, consentedSubjectSamples []samples.Sample) error {
 	attrLabels := HeaderToAttributeLabels(samplesHeader)
 	variables := sampleattributesdd.Variables(attrLabels)
 	spec := sampleattributesdd.Spec(variables)
-	sampleAttributesDDPath := filepath.Join(outputDirectory, spec.FileName)
+	ddWriter := dd.NewNoOpWriter(outputDirectory, spec.FileName)
 
-	if err := dd.Write(sampleAttributesDDPath, spec); err != nil {
+	if err := ddWriter.Write(spec); err != nil {
 		return err
 	}
 
-	logger.Info("wrote sample attributes DD file", slog.String("file", sampleAttributesDDPath))
-
-	sampleAttributesDSPath := filepath.Join(outputDirectory, sampleattributesds.FileName)
-	if err := sampleattributesds.Write(sampleAttributesDSPath, variables, consentedSubjectSamples); err != nil {
+	dsWriter := ds.NewXLSXWriter(outputDirectory, sampleattributesds.DefaultFileNameBase)
+	if err := sampleattributesds.Write(dsWriter, variables, consentedSubjectSamples); err != nil {
 		return err
 	}
-
-	logger.Info("wrote sample attributes DS file", slog.String("file", sampleAttributesDSPath))
 
 	return nil
 }

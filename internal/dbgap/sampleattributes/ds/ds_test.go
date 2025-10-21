@@ -2,11 +2,11 @@ package ds
 
 import (
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
+	"github.com/pennsieve/dbgap-prep/internal/dbgap/ds"
 	"github.com/pennsieve/dbgap-prep/internal/samples"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/xuri/excelize/v2"
-	"path/filepath"
 	"testing"
 )
 
@@ -27,11 +27,11 @@ func TestToRow(t *testing.T) {
 }
 
 func TestWrite(t *testing.T) {
-	path := filepath.Join(t.TempDir(), FileName)
+	writer := ds.NewXLSXWriter(t.TempDir(), DefaultFileNameBase)
 
-	require.NoError(t, Write(path, variables, consentedSubjectSamples))
+	require.NoError(t, Write(writer, variables, consentedSubjectSamples))
 
-	actualFile, err := excelize.OpenFile(path)
+	actualFile, err := excelize.OpenFile(writer.Path())
 	require.NoError(t, err)
 	defer func() {
 		assert.NoError(t, actualFile.Close())
