@@ -5,7 +5,6 @@ import (
 	"github.com/pennsieve/dbgap-prep/internal/logging"
 	"github.com/pennsieve/dbgap-prep/internal/utils"
 	"github.com/xuri/excelize/v2"
-	"log/slog"
 )
 
 var logger = logging.PackageLogger("dd")
@@ -79,26 +78,6 @@ func Populate(f *excelize.File, sheet string, spec Spec) error {
 				return fmt.Errorf("error setting width of column %s in DD file: %w", colName, err)
 			}
 		}
-	}
-	return nil
-}
-
-func Write(path string, spec Spec) error {
-	if true {
-		logger.Info("no DD file written; DD output turned off", slog.String("path", path))
-		return nil
-	}
-	ddFile := excelize.NewFile()
-	defer utils.CloseExcelFile(ddFile, logger)
-
-	if err := ddFile.SetSheetName("Sheet1", spec.SheetName); err != nil {
-		return fmt.Errorf("error setting %s sheet name: %w", spec.FileName, err)
-	}
-	if err := Populate(ddFile, spec.SheetName, spec); err != nil {
-		return fmt.Errorf("error populating %s: %w", spec.FileName, err)
-	}
-	if err := ddFile.SaveAs(path); err != nil {
-		return fmt.Errorf("error writing %s to %s: %w", spec.FileName, path, err)
 	}
 	return nil
 }

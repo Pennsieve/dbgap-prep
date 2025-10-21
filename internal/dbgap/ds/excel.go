@@ -5,6 +5,7 @@ import (
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/utils"
 	"github.com/xuri/excelize/v2"
+	"log/slog"
 	"path/filepath"
 )
 
@@ -64,5 +65,8 @@ func (x *XLSXWriter) Write(spec Spec, rows [][]string) error {
 	if err := f.SaveAs(x.path); err != nil {
 		return fmt.Errorf("error saving XLSX file to %s: %w", x.path, err)
 	}
+
+	logger.Info("wrote DS file", slog.String("file", x.path))
+
 	return nil
 }

@@ -49,5 +49,7 @@ func (t *TSVWriter) Write(spec Spec, rows [][]string) error {
 		return fmt.Errorf("error writing records to DS file %s: %s", t.path, err)
 	}
 
+	logger.Info("wrote DS file", slog.String("file", t.path))
+
 	return nil
 }
