@@ -69,15 +69,9 @@ func Populate(f *excelize.File, sheet string, spec Spec) error {
 		}
 	}
 
-	// Apply column widths (+2 padding)
-	for c, w := range colWidths {
-		if colName, err := excelize.ColumnNumberToName(c + 1); err != nil {
-			return fmt.Errorf("error getting column name of DD file: %w", err)
-		} else {
-			if err := f.SetColWidth(sheet, colName, colName, float64(w+2)); err != nil {
-				return fmt.Errorf("error setting width of column %s in DD file: %w", colName, err)
-			}
-		}
+	if err := colWidths.SetWidths(f, sheet); err != nil {
+		return fmt.Errorf("error setting column widths of DD file: %w", err)
 	}
+
 	return nil
 }

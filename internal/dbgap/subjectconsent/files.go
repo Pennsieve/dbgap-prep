@@ -1,6 +1,7 @@
 package subjectconsent
 
 import (
+	"fmt"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/ds"
 	scdd "github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent/dd"
@@ -16,13 +17,13 @@ func WriteFiles(outputDirectory string, subs []subjects.Subject) ([]scds.Subject
 	ddWriter := dd.NewNoOpWriter(outputDirectory, scdd.Spec.FileName)
 
 	if err := ddWriter.Write(scdd.Spec); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error writing subject consent file: %w", err)
 	}
 
 	dsWriter := ds.NewXLSXWriter(outputDirectory, scds.DefaultFileNameBase)
 	subjectConsents, err := scds.Write(dsWriter, subs)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error writing subject consent file: %w", err)
 	}
 
 	logger.Info("got subject consents",
