@@ -1,6 +1,7 @@
 package subjectphenotypes
 
 import (
+	"fmt"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/ds"
 	subjectgphenotypesdd "github.com/pennsieve/dbgap-prep/internal/dbgap/subjectphenotypes/dd"
@@ -16,12 +17,12 @@ func WriteFiles(outputDirectory string, subjectsHeader []string, consentedSubjec
 	ddWriter := dd.NewNoOpWriter(outputDirectory, spec.FileName)
 
 	if err := ddWriter.Write(spec); err != nil {
-		return err
+		return fmt.Errorf("error writing subject phenotypes file: %w", err)
 	}
 
 	dsWriter := ds.NewXLSXWriter(outputDirectory, subjectgphenotypesds.DefaultFileNameBase)
 	if err := subjectgphenotypesds.Write(dsWriter, variables, consentedSubjects); err != nil {
-		return err
+		return fmt.Errorf("error writing subject phenotypes file: %w", err)
 	}
 
 	return nil

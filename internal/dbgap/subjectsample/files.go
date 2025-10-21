@@ -1,6 +1,7 @@
 package subjectsample
 
 import (
+	"fmt"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/ds"
 	ssmdd "github.com/pennsieve/dbgap-prep/internal/dbgap/subjectsample/dd"
@@ -12,12 +13,12 @@ func WriteFiles(outputDirectory string, consentedSubjectSamples []samples.Sample
 	ddWriter := dd.NewNoOpWriter(outputDirectory, ssmdd.Spec.FileName)
 
 	if err := ddWriter.Write(ssmdd.Spec); err != nil {
-		return err
+		return fmt.Errorf("error writing subject sample mapping file: %w", err)
 	}
 
 	dsWriter := ds.NewXLSXWriter(outputDirectory, ssmds.DefaultFileNameBase)
 	if err := ssmds.Write(dsWriter, consentedSubjectSamples); err != nil {
-		return err
+		return fmt.Errorf("error writing subject sample mapping file: %w", err)
 	}
 
 	return nil

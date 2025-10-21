@@ -8,6 +8,9 @@ import (
 
 var HeaderStyle = &excelize.Style{Font: &excelize.Font{Bold: true}}
 
+// MaxColumnWidth is the maximum value allowed for the column width in Excel files.
+const MaxColumnWidth = 255
+
 func CloseExcelFile(inputFile *excelize.File, logger *slog.Logger) {
 	if err := inputFile.Close(); err != nil {
 		logger.Warn("error closing Excel file",
@@ -74,10 +77,37 @@ func FromFile[T any](file *excelize.File, isHeaderRow IsHeaderRowFunc, fromRow F
 
 // Writing
 
+type ColumnWidths map[int]int
+
+func (cw ColumnWidths) AddValue(columnIndex int, value any) {
+	str := fmt.Sprint(value) // convert to string for length
+	if len(str) > cw[columnIndex] {
+		cw[columnIndex] = len(str)
+	}
+}
+
+func (cw ColumnWidths) SetWidths(f *excelize.File, sheetName string) error {
+	// Apply column widths (+2 padding)
+	for c, w := range cw {
+		if colName, err := excelize.ColumnNumberToName(c + 1); err != nil {
+			return fmt.Errorf("error getting column name of Excel file: %w", err)
+		} else {
+			width := w + 2
+			if width > MaxColumnWidth {
+				width = MaxColumnWidth
+			}
+			if err := f.SetColWidth(sheetName, colName, colName, float64(width)); err != nil {
+				return fmt.Errorf("error setting width of column %s in Excel file: %w", colName, err)
+			}
+		}
+	}
+	return nil
+}
+
 // PopulateRow writes the slice of T to the given sheet and file at rowNumber (1-based).
 // The returned map maps column numbers (0-based) to widths. If the passed colWidths is not-nil, the returned map is an updated
 // version of colWidths.
-func PopulateRow[T any](f *excelize.File, sheetName string, rowNumber int, row []T, colWidths map[int]int) (map[int]int, error) {
+func PopulateRow[T any](f *excelize.File, sheetName string, rowNumber int, row []T, colWidths ColumnWidths) (ColumnWidths, error) {
 	if colWidths == nil {
 		colWidths = map[int]int{}
 	}
@@ -93,10 +123,7 @@ func PopulateRow[T any](f *excelize.File, sheetName string, rowNumber int, row [
 
 	// update column widths
 	for c, v := range row {
-		str := fmt.Sprint(v) // convert to string for length
-		if len(str) > colWidths[c] {
-			colWidths[c] = len(str)
-		}
+		colWidths.AddValue(c, v)
 	}
 
 	return colWidths, nil

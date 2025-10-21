@@ -51,15 +51,8 @@ func (x *XLSXWriter) Write(spec Spec, rows [][]string) error {
 		}
 	}
 
-	// Apply column widths (+2 padding)
-	for c, w := range colWidths {
-		if colName, err := excelize.ColumnNumberToName(c + 1); err != nil {
-			return fmt.Errorf("error getting column name of DS file: %w", err)
-		} else {
-			if err := f.SetColWidth(sheet, colName, colName, float64(w+2)); err != nil {
-				return fmt.Errorf("error setting width of column %s in DS file: %w", colName, err)
-			}
-		}
+	if err := colWidths.SetWidths(f, sheet); err != nil {
+		return fmt.Errorf("error setting column widths of DS file: %w", err)
 	}
 
 	if err := f.SaveAs(x.path); err != nil {
