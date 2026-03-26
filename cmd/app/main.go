@@ -14,7 +14,6 @@ var logger = logging.PackageLogger("main")
 func main() {
 
 	if _, isLambda := os.LookupEnv("AWS_LAMBDA_RUNTIME_API"); isLambda {
-		logger.Info("starting in Lambda mode")
 		lambda.Start(lambdahandler.Handler)
 		return
 	}
@@ -25,8 +24,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger.Info("created dbgap-prep application",
+	logger.Info("created dbgap-prep application in ECS mode",
 		slog.String("integrationID", m.IntegrationID),
+		slog.String("workflowInstanceID", m.WorkflowInstanceID),
 		slog.String("inputDirectory", m.InputDirectory),
 		slog.String("outputDirectory", m.OutputDirectory),
 	)

@@ -31,7 +31,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	dbgap := app.NewApp("NA", inputDirectory, outputDirectory)
+	dbgap := app.NewApp("NA", "NA", inputDirectory, outputDirectory)
 
 	logger.Info("created local dbgap-prep application",
 		slog.String("integrationID", dbgap.IntegrationID),

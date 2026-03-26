@@ -19,16 +19,18 @@ import (
 var logger = logging.PackageLogger("app")
 
 type App struct {
-	IntegrationID   string
-	InputDirectory  string
-	OutputDirectory string
+	IntegrationID      string
+	WorkflowInstanceID string
+	InputDirectory     string
+	OutputDirectory    string
 }
 
-func NewApp(integrationID string, inputDirectory string, outputDirectory string) *App {
+func NewApp(integrationID string, workflowInstanceID string, inputDirectory string, outputDirectory string) *App {
 	return &App{
-		IntegrationID:   integrationID,
-		InputDirectory:  inputDirectory,
-		OutputDirectory: outputDirectory,
+		IntegrationID:      integrationID,
+		WorkflowInstanceID: workflowInstanceID,
+		InputDirectory:     inputDirectory,
+		OutputDirectory:    outputDirectory,
 	}
 }
 
