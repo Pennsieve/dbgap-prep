@@ -1,7 +1,9 @@
 package main
 
 import (
+	"github.com/aws/aws-lambda-go/lambda"
 	app "github.com/pennsieve/dbgap-prep/internal"
+	lambdahandler "github.com/pennsieve/dbgap-prep/internal/lambda"
 	"github.com/pennsieve/dbgap-prep/internal/logging"
 	"log/slog"
 	"os"
@@ -10,6 +12,13 @@ import (
 var logger = logging.PackageLogger("main")
 
 func main() {
+
+	if _, isLambda := os.LookupEnv("AWS_LAMBDA_RUNTIME_API"); isLambda {
+		logger.Info("starting in Lambda mode")
+		lambda.Start(lambdahandler.Handler)
+		return
+	}
+
 	m, err := app.FromEnv()
 	if err != nil {
 		logger.Error("error creating application", slog.Any("error", err))
