@@ -1,8 +1,6 @@
-FROM golang:1.23-alpine
+FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
-
-RUN mkdir -p data
 
 ENV CGO_ENABLED=0
 
@@ -13,5 +11,13 @@ COPY cmd cmd
 COPY internal internal
 
 RUN ["go", "build", "-o", "main", "cmd/app/main.go"]
+
+FROM alpine:3.21
+
+WORKDIR /app
+
+RUN mkdir -p data
+
+COPY --from=builder /app/main .
 
 ENTRYPOINT [ "/app/main" ]
