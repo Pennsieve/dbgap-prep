@@ -7,18 +7,19 @@ import (
 
 	app "github.com/pennsieve/dbgap-prep/internal"
 	"github.com/pennsieve/dbgap-prep/internal/logging"
+	"github.com/pennsieve/dbgap-prep/internal/utils"
 )
 
 var logger = logging.PackageLogger("lambda")
 
 type Event struct {
-	IntegrationID      string `json:"integrationId"`
-	WorkflowInstanceID string `json:"workflowInstanceId"`
-	InputDirectory     string `json:"inputDir"`
-	OutputDirectory    string `json:"outputDir"`
-	ConsentGroup       string `json:"CONSENT_GROUP"`
-	AnalyteType        string `json:"ANALYTE_TYPE"`
-	IsTumor            bool   `json:"IS_TUMOR"`
+	IntegrationID      string         `json:"integrationId"`
+	WorkflowInstanceID string         `json:"workflowInstanceId"`
+	InputDirectory     string         `json:"inputDir"`
+	OutputDirectory    string         `json:"outputDir"`
+	ConsentGroup       string         `json:"CONSENT_GROUP"`
+	AnalyteType        string         `json:"ANALYTE_TYPE"`
+	IsTumor            utils.FlexBool `json:"IS_TUMOR"`
 }
 
 func Handler(_ context.Context, event Event) error {
@@ -29,7 +30,7 @@ func Handler(_ context.Context, event Event) error {
 		slog.String("outputDirectory", event.OutputDirectory),
 		slog.String("consentGroup", event.ConsentGroup),
 		slog.String("analyteType", event.AnalyteType),
-		slog.Bool("isTumor", event.IsTumor),
+		slog.Bool("isTumor", bool(event.IsTumor)),
 	)
 
 	m := app.NewApp(event.IntegrationID, event.WorkflowInstanceID, event.InputDirectory, event.OutputDirectory)
