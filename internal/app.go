@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"path/filepath"
 
+	"github.com/pennsieve/dbgap-prep/internal/config"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/sampleattributes"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent"
 	scds "github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent/ds"
@@ -20,10 +21,10 @@ import (
 var logger = logging.PackageLogger("app")
 
 type App struct {
-	Config *Config
+	Config *config.Config
 }
 
-func NewApp(config *Config) *App {
+func NewApp(config *config.Config) *App {
 	return &App{
 		Config: config,
 	}
@@ -51,7 +52,7 @@ func (a *App) Run() error {
 		return nil
 	}
 
-	subjectsConsents, err := subjectconsent.WriteFiles(a.Config.OutputDirectory, subs)
+	subjectsConsents, err := subjectconsent.WriteFiles(a.Config.OutputDirectory, a.Config.ConsentGroup, subs)
 	if err != nil {
 		return err
 	}

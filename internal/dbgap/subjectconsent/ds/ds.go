@@ -10,14 +10,24 @@ import (
 
 const DefaultFileNameBase = "2a_SubjectConsent_DS"
 
-var Spec = ds.Spec{
-	Variables: []dd.Variable{*dd.SubjectIDVar, *models.ConsentVar, *models.SexVar},
+func Spec(consentVariable dd.Variable) ds.Spec {
+	return ds.Spec{
+		Variables: []dd.Variable{
+			*dd.SubjectIDVar,
+			consentVariable,
+			*models.SexVar,
+			*models.SubjectSourceVar,
+			*models.SourceSubjectID,
+		},
+	}
 }
 
 type SubjectConsent struct {
-	SubjectID string
-	Consent   string
-	Sex       string
+	SubjectID       string
+	Consent         string
+	Sex             string
+	SubjectSource   string
+	SourceSubjectID string
 }
 
 func (sc SubjectConsent) IsConsented() bool {
@@ -27,14 +37,18 @@ func (sc SubjectConsent) IsConsented() bool {
 func ToRow(subject subjects.Subject) ([]string, SubjectConsent) {
 	// Order of items in slice must match the Header row
 	subjectConsent := SubjectConsent{
-		SubjectID: subject.ID,
-		Consent:   models.ConsentFromSubject(subject),
-		Sex:       models.SexFromSubject(subject),
+		SubjectID:       subject.ID,
+		Consent:         models.ConsentFromSubject(subject),
+		Sex:             models.SexFromSubject(subject),
+		SubjectSource:   models.SubjectSourceFromSubject(subject),
+		SourceSubjectID: models.SourceSubjectIDFromSubject(subject),
 	}
 	row := []string{
 		subjectConsent.SubjectID,
 		subjectConsent.Consent,
 		subjectConsent.Sex,
+		subjectConsent.SubjectSource,
+		subjectConsent.SourceSubjectID,
 	}
 	return row, subjectConsent
 }
@@ -50,10 +64,10 @@ func ToRows(subs []subjects.Subject) ([][]string, []SubjectConsent) {
 	return rows, subjectConsents
 }
 
-func Write(writer ds.Writer, subs []subjects.Subject) ([]SubjectConsent, error) {
+func Write(writer ds.Writer, spec ds.Spec, subs []subjects.Subject) ([]SubjectConsent, error) {
 	rows, subjectConsents := ToRows(subs)
 
-	err := writer.Write(Spec, rows)
+	err := writer.Write(spec, rows)
 	if err != nil {
 		return nil, err
 	}

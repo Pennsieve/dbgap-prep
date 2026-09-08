@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	app "github.com/pennsieve/dbgap-prep/internal"
+	"github.com/pennsieve/dbgap-prep/internal/config"
 	"github.com/pennsieve/dbgap-prep/internal/logging"
 	"github.com/pennsieve/dbgap-prep/internal/utils"
 )
@@ -33,7 +34,12 @@ func Handler(_ context.Context, event Event) error {
 		slog.Bool("isTumor", bool(event.IsTumor)),
 	)
 
-	m := app.NewApp(configFromEvent(event))
+	cfg, err := configFromEvent(event)
+	if err != nil {
+		return fmt.Errorf("error converting event to config: %w", err)
+	}
+
+	m := app.NewApp(cfg)
 
 	if err := m.Run(); err != nil {
 		return fmt.Errorf("error running application: %w", err)
@@ -42,14 +48,18 @@ func Handler(_ context.Context, event Event) error {
 	return nil
 }
 
-func configFromEvent(event Event) *app.Config {
-	return &app.Config{
+func configFromEvent(event Event) (*config.Config, error) {
+	consentGroup, err := config.ConsentGroupFromString(event.ConsentGroup)
+	if err != nil {
+		return nil, err
+	}
+	return &config.Config{
 		IntegrationID:      event.IntegrationID,
 		WorkflowInstanceID: event.WorkflowInstanceID,
 		InputDirectory:     event.InputDirectory,
 		OutputDirectory:    event.OutputDirectory,
-		ConsentGroup:       event.ConsentGroup,
+		ConsentGroup:       consentGroup,
 		AnalyteType:        event.AnalyteType,
 		IsTumor:            bool(event.IsTumor),
-	}
+	}, nil
 }

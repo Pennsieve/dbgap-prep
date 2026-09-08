@@ -7,13 +7,18 @@ import (
 
 var header = []dd.Column{dd.VarNameColumn, dd.VarDescColumn, dd.TypeColumn, dd.ValuesColumn}
 
-var Spec = dd.Spec{
-	FileName:  "2b_SubjectConsent_DD.xlsx",
-	SheetName: "2b_SubjectConsent_DD",
-	Header:    header,
-	Rows: [][]any{
-		dd.SubjectIDVar.ToDDRow(header),
-		models.ConsentVar.ToDDRow(header),
-		models.SexVar.ToDDRow(header),
-	},
+func Spec(consentVariable *dd.Variable) dd.Spec {
+	spec := dd.Spec{
+		FileName:  "2b_SubjectConsent_DD.xlsx",
+		SheetName: "2b_SubjectConsent_DD",
+		Header:    header,
+		Rows: [][]any{
+			dd.SubjectIDVar.ToDDRow(header),
+			consentVariable.ToDDRow(header),
+			models.SexVar.ToDDRow(header),
+			models.SubjectSourceVar.ToDDRow(header),
+			models.SourceSubjectID.ToDDRow(header),
+		},
+	}
+	return spec
 }

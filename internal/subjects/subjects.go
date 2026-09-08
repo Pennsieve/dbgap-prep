@@ -2,15 +2,19 @@ package subjects
 
 import (
 	"fmt"
+	"log/slog"
+	"strings"
+
 	"github.com/pennsieve/dbgap-prep/internal/logging"
 	"github.com/pennsieve/dbgap-prep/internal/utils"
 	"github.com/xuri/excelize/v2"
-	"log/slog"
 )
 
 var logger = logging.PackageLogger("subjects")
 
 const FileName = "subjects.xlsx"
+
+const SourceSubjectIDdbGapColumn = "SOURCE_SUBJECT_ID_dbGaP"
 
 const IDIndex = 0
 const IDLabel = "subject id"
@@ -18,8 +22,9 @@ const SexIndex = 4
 const SexLabel = "sex"
 
 type Subject struct {
-	ID  string
-	Sex string
+	ID                   string
+	Sex                  string
+	SourceSubjectIDdbGap string
 	// Values maps header labels to corresponding values for this row
 	Values map[string]string
 }
@@ -74,7 +79,11 @@ func FromRow(header []string, row []string) (Subject, error) {
 			//skip these since they are already part of the struct
 		} else if i < len(row) {
 			// excelize does not give us empty cells beyond the last non-empty cell
-			values[label] = row[i]
+			if strings.ToLower(label) == strings.ToLower(SourceSubjectIDdbGapColumn) {
+				subject.SourceSubjectIDdbGap = row[i]
+			} else {
+				values[label] = row[i]
+			}
 		}
 	}
 	logger.Info("found subject", subject.LogGroup())

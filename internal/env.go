@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
+
+	"github.com/pennsieve/dbgap-prep/internal/config"
 )
 
 const IntegrationIDKey = "INTEGRATION_ID"
@@ -15,33 +17,33 @@ const ConsentGroupKey = "CONSENT_GROUP"
 const AnalyteTypeKey = "ANALYTE_TYPE"
 const IsTumorKey = "IS_TUMOR"
 
-func ConfigFromEnv() (*Config, error) {
-	var config Config
+func ConfigFromEnv() (*config.Config, error) {
+	var cfg config.Config
 	var err error
-	config.IntegrationID, err = LookupRequiredEnvVar(IntegrationIDKey)
+	cfg.IntegrationID, err = LookupRequiredEnvVar(IntegrationIDKey)
 	if err != nil {
 		return nil, err
 	}
 	// Not clear if this will be present, so not required.
-	config.WorkflowInstanceID = os.Getenv(WorkflowInstanceID)
-	config.InputDirectory, err = LookupRequiredEnvVar(InputDirectoryKey)
+	cfg.WorkflowInstanceID = os.Getenv(WorkflowInstanceID)
+	cfg.InputDirectory, err = LookupRequiredEnvVar(InputDirectoryKey)
 	if err != nil {
 		return nil, err
 	}
-	config.OutputDirectory, err = LookupRequiredEnvVar(OutputDirectoryKey)
+	cfg.OutputDirectory, err = LookupRequiredEnvVar(OutputDirectoryKey)
 	if err != nil {
 		return nil, err
 	}
-	config.ConsentGroup, err = LookupRequiredEnvVar(ConsentGroupKey)
+	cfg.ConsentGroup, err = LookupConsentGroupEnvVar()
 	if err != nil {
 		return nil, err
 	}
-	config.AnalyteType, err = LookupRequiredEnvVar(AnalyteTypeKey)
+	cfg.AnalyteType, err = LookupRequiredEnvVar(AnalyteTypeKey)
 	if err != nil {
 		return nil, err
 	}
-	config.IsTumor, err = LookupBoolEnvVar(IsTumorKey, false)
-	return &config, nil
+	cfg.IsTumor, err = LookupBoolEnvVar(IsTumorKey, false)
+	return &cfg, nil
 }
 
 func LookupRequiredEnvVar(key string) (string, error) {
@@ -50,6 +52,14 @@ func LookupRequiredEnvVar(key string) (string, error) {
 		return "", fmt.Errorf("no %s set", key)
 	}
 	return value, nil
+}
+
+func LookupConsentGroupEnvVar() (config.ConsentGroup, error) {
+	strValue, err := LookupRequiredEnvVar(ConsentGroupKey)
+	if err != nil {
+		return 0, err
+	}
+	return config.ConsentGroupFromString(strValue)
 }
 
 func LookupBoolEnvVar(key string, defaultValue bool) (bool, error) {

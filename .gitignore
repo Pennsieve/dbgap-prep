@@ -31,3 +31,8 @@ go.work.sum
 # .idea/
 # .vscode/
 /.idea/
+/2a_SubjectConsent_DS.xlsx
+/2b_SubjectConsent_DD.xlsx
+/3a_SSM_DS.xlsx
+/5a_SubjectPhenotypes_DS.xlsx
+/6a_SampleAttributes_DS.xlsx

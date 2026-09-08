@@ -30,7 +30,7 @@ func main() {
 		slog.String("workflowInstanceID", config.WorkflowInstanceID),
 		slog.String("inputDirectory", config.InputDirectory),
 		slog.String("outputDirectory", config.OutputDirectory),
-		slog.String("consentGroup", config.ConsentGroup),
+		slog.String("consentGroup", config.ConsentGroup.String()),
 		slog.String("analyteType", config.AnalyteType),
 		slog.Bool("isTumor", config.IsTumor),
 	)
