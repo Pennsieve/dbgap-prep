@@ -2,10 +2,11 @@ package main
 
 import (
 	"flag"
-	app "github.com/pennsieve/dbgap-prep/internal"
-	"github.com/pennsieve/dbgap-prep/internal/logging"
 	"log/slog"
 	"os"
+
+	app "github.com/pennsieve/dbgap-prep/internal"
+	"github.com/pennsieve/dbgap-prep/internal/logging"
 )
 
 var logger = logging.PackageLogger("main")
@@ -31,12 +32,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	dbgap := app.NewApp("NA", "NA", inputDirectory, outputDirectory)
+	config := &app.Config{
+		IntegrationID:      "NA",
+		WorkflowInstanceID: "NA",
+		InputDirectory:     inputDirectory,
+		OutputDirectory:    outputDirectory,
+	}
+
+	dbgap := app.NewApp(config)
 
 	logger.Info("created local dbgap-prep application",
-		slog.String("integrationID", dbgap.IntegrationID),
-		slog.String("inputDirectory", dbgap.InputDirectory),
-		slog.String("outputDirectory", dbgap.OutputDirectory),
+		slog.String("integrationID", dbgap.Config.IntegrationID),
+		slog.String("inputDirectory", dbgap.Config.InputDirectory),
+		slog.String("outputDirectory", dbgap.Config.OutputDirectory),
 	)
 
 	if err := dbgap.Run(); err != nil {

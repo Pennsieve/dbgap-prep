@@ -33,11 +33,23 @@ func Handler(_ context.Context, event Event) error {
 		slog.Bool("isTumor", bool(event.IsTumor)),
 	)
 
-	m := app.NewApp(event.IntegrationID, event.WorkflowInstanceID, event.InputDirectory, event.OutputDirectory)
+	m := app.NewApp(configFromEvent(event))
 
 	if err := m.Run(); err != nil {
 		return fmt.Errorf("error running application: %w", err)
 	}
 
 	return nil
+}
+
+func configFromEvent(event Event) *app.Config {
+	return &app.Config{
+		IntegrationID:      event.IntegrationID,
+		WorkflowInstanceID: event.WorkflowInstanceID,
+		InputDirectory:     event.InputDirectory,
+		OutputDirectory:    event.OutputDirectory,
+		ConsentGroup:       event.ConsentGroup,
+		AnalyteType:        event.AnalyteType,
+		IsTumor:            bool(event.IsTumor),
+	}
 }

@@ -15,28 +15,6 @@ const ConsentGroupKey = "CONSENT_GROUP"
 const AnalyteTypeKey = "ANALYTE_TYPE"
 const IsTumorKey = "IS_TUMOR"
 
-func FromEnv() (*App, error) {
-	integrationID, err := LookupRequiredEnvVar(IntegrationIDKey)
-	if err != nil {
-		return nil, err
-	}
-	// Not clear if this will be present, so not required.
-	workflowInstanceID := os.Getenv(WorkflowInstanceID)
-	inputDirectory, err := LookupRequiredEnvVar(InputDirectoryKey)
-	if err != nil {
-		return nil, err
-	}
-	outputDirectory, err := LookupRequiredEnvVar(OutputDirectoryKey)
-	if err != nil {
-		return nil, err
-	}
-	return NewApp(integrationID,
-		workflowInstanceID,
-		inputDirectory,
-		outputDirectory,
-	), nil
-}
-
 func ConfigFromEnv() (*Config, error) {
 	var config Config
 	var err error

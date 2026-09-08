@@ -22,6 +22,7 @@ func main() {
 	config, err := app.ConfigFromEnv()
 	if err != nil {
 		logger.Error("error loading config from environment", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	logger.Info("loaded config from environment",
@@ -34,18 +35,9 @@ func main() {
 		slog.Bool("isTumor", config.IsTumor),
 	)
 
-	m, err := app.FromEnv()
-	if err != nil {
-		logger.Error("error creating application", slog.Any("error", err))
-		os.Exit(1)
-	}
+	m := app.NewApp(config)
 
-	logger.Info("created dbgap-prep application in ECS mode",
-		slog.String("integrationID", m.IntegrationID),
-		slog.String("workflowInstanceID", m.WorkflowInstanceID),
-		slog.String("inputDirectory", m.InputDirectory),
-		slog.String("outputDirectory", m.OutputDirectory),
-	)
+	logger.Info("created dbgap-prep application in ECS mode")
 
 	if err := m.Run(); err != nil {
 		logger.Error("error running application", slog.Any("error", err))
