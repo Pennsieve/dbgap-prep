@@ -1,12 +1,13 @@
 package main
 
 import (
+	"log/slog"
+	"os"
+
 	"github.com/aws/aws-lambda-go/lambda"
 	app "github.com/pennsieve/dbgap-prep/internal"
 	lambdahandler "github.com/pennsieve/dbgap-prep/internal/lambda"
 	"github.com/pennsieve/dbgap-prep/internal/logging"
-	"log/slog"
-	"os"
 )
 
 var logger = logging.PackageLogger("main")
@@ -17,6 +18,21 @@ func main() {
 		lambda.Start(lambdahandler.Handler)
 		return
 	}
+
+	config, err := app.ConfigFromEnv()
+	if err != nil {
+		logger.Error("error loading config from environment", slog.Any("error", err))
+	}
+
+	logger.Info("loaded config from environment",
+		slog.String("integrationID", config.IntegrationID),
+		slog.String("workflowInstanceID", config.WorkflowInstanceID),
+		slog.String("inputDirectory", config.InputDirectory),
+		slog.String("outputDirectory", config.OutputDirectory),
+		slog.String("consentGroup", config.ConsentGroup),
+		slog.String("analyteType", config.AnalyteType),
+		slog.Bool("isTumor", config.IsTumor),
+	)
 
 	m, err := app.FromEnv()
 	if err != nil {

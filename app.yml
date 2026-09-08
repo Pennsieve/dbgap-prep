@@ -1,0 +1,29 @@
+schemaVersion: '1.0'
+application:
+  name: dbgap-prep
+  description: Creates files for dbGaP submission
+  type: processor
+runtime:
+  cpu: 1024
+  memory: 2048
+  computeTypes:
+    - standard
+    - lambda
+parameters:
+  - name: CONSENT_GROUP
+    type: string
+    description: Sets the 2b CONSENT text
+    validValues:
+      - GRU
+      - HMB
+  - name: ANALYTE_TYPE
+    type: string
+    description: Applied to every 6a row
+    validValues:
+      - DNA
+      - RNA
+      - DNA/RNA
+  - name: IS_TUMOR
+    type: boolean
+    defaultValue: 'false'
+    required: true
