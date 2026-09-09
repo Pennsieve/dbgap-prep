@@ -2,8 +2,9 @@ package utils
 
 import (
 	"fmt"
-	"github.com/xuri/excelize/v2"
 	"log/slog"
+
+	"github.com/xuri/excelize/v2"
 )
 
 var HeaderStyle = &excelize.Style{Font: &excelize.Font{Bold: true}}
@@ -92,10 +93,7 @@ func (cw ColumnWidths) SetWidths(f *excelize.File, sheetName string) error {
 		if colName, err := excelize.ColumnNumberToName(c + 1); err != nil {
 			return fmt.Errorf("error getting column name of Excel file: %w", err)
 		} else {
-			width := w + 2
-			if width > MaxColumnWidth {
-				width = MaxColumnWidth
-			}
+			width := min(w+2, MaxColumnWidth)
 			if err := f.SetColWidth(sheetName, colName, colName, float64(width)); err != nil {
 				return fmt.Errorf("error setting width of column %s in Excel file: %w", colName, err)
 			}

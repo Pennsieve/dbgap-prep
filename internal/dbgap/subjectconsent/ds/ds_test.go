@@ -1,20 +1,21 @@
 package ds
 
 import (
+	"testing"
+
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent/models"
 	"github.com/pennsieve/dbgap-prep/internal/samples"
 	"github.com/pennsieve/dbgap-prep/internal/subjects"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestGetConsented(t *testing.T) {
 	subjectConsents := []SubjectConsent{
-		{SubjectID: "sub-not-consented", Consent: models.NoConsent.Value, Sex: models.FemaleSex.Value},
-		{SubjectID: "sub-1", Consent: models.GRUConsent.Value, Sex: models.MaleSex.Value},
-		{SubjectID: "sub-3", Consent: models.GRUConsent.Value, Sex: models.UnknownSex.Value},
-		{SubjectID: "sub-no-samps", Consent: models.GRUConsent.Value, Sex: models.FemaleSex.Value},
+		{SubjectID: "sub-not-consented", Consent: models.NoConsent.Value, Sex: models.FemaleSex.Value, SubjectSource: models.SPARCSubjectSource},
+		{SubjectID: "sub-1", Consent: models.GRUConsent.Value, Sex: models.MaleSex.Value, SubjectSource: models.SPARCSubjectSource},
+		{SubjectID: "sub-3", Consent: models.GRUConsent.Value, Sex: models.UnknownSex.Value, SubjectSource: models.SPARCSubjectSource},
+		{SubjectID: "sub-no-samps", Consent: models.GRUConsent.Value, Sex: models.FemaleSex.Value, SubjectSource: models.SPARCSubjectSource},
 	}
 	var subs []subjects.Subject
 	for _, subjectConsent := range subjectConsents {

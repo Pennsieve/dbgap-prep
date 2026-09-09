@@ -1,6 +1,9 @@
 package models
 
 import (
+	"fmt"
+
+	"github.com/pennsieve/dbgap-prep/internal/config"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/subjects"
 )
@@ -10,16 +13,31 @@ import (
 // are in flux.
 var NoConsent = dd.NewEncodedValue("0", "No Consent (NC)")
 
-var GRUConsent = dd.NewEncodedValue("1", "General Research Use (GRU)")
+var ConsentedValue = "1"
 
-var ConsentVar = &dd.Variable{
-	Name:        "CONSENT",
-	Description: "Registered consent groups (Data Use Limitations (DUL)) as determined by submitters' Institutional Review Boards (IRB) or equivalent body.",
-	Type:        dd.EncodedValueType,
-	Values:      []dd.EncodedValue{GRUConsent},
+var GRUConsent = dd.NewEncodedValue(ConsentedValue, "General Research Use (GRU)")
+
+var HMBConsent = dd.NewEncodedValue(ConsentedValue, "Health/Medical/Biomedical (HMB)")
+
+func ConsentVariable(consentGroup config.ConsentGroup) (dd.Variable, error) {
+	consentVariable := dd.Variable{
+		Name:        "CONSENT",
+		Description: "Consent group as determined by DAC",
+		Type:        dd.EncodedValueType,
+	}
+	switch consentGroup {
+	case config.GRU:
+		consentVariable.Values = []dd.EncodedValue{GRUConsent}
+	case config.HMB:
+		consentVariable.Values = []dd.EncodedValue{HMBConsent}
+	default:
+		return dd.Variable{}, fmt.Errorf("unknown consent group: %d", consentGroup)
+
+	}
+	return consentVariable, nil
 }
 
-// ConsentFromSubject always returns GRUConsent until we learn otherwise.
+// ConsentFromSubject always returns ConsentedValue
 func ConsentFromSubject(_ subjects.Subject) string {
-	return GRUConsent.Value
+	return ConsentedValue
 }

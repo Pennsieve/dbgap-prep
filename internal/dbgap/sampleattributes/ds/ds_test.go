@@ -1,25 +1,25 @@
 package ds
 
 import (
+	"testing"
+
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/ds"
 	"github.com/pennsieve/dbgap-prep/internal/samples"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/xuri/excelize/v2"
-	"testing"
 )
 
 func TestToRow(t *testing.T) {
-	variableNames := dd.VariableNames(variables)
 	for _, consentedSample := range consentedSubjectSamples {
-		row := ToRow(variableNames, consentedSample)
-		assert.Len(t, row, len(variableNames))
-		for i, variableName := range variableNames {
-			if variableName == dd.SampleIDVar.Name {
+		row := ToRow(variables, consentedSample)
+		assert.Len(t, row, len(variables))
+		for i, variable := range variables {
+			if variable.Name == dd.SampleIDVar.Name {
 				assert.Equal(t, consentedSample.ID, row[i])
 			} else {
-				assert.Equal(t, consentedSample.Values[variableName], row[i])
+				assert.Equal(t, consentedSample.Values[variable.Name], row[i])
 			}
 		}
 

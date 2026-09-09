@@ -2,6 +2,10 @@ package app
 
 import (
 	"fmt"
+	"log/slog"
+	"path/filepath"
+
+	"github.com/pennsieve/dbgap-prep/internal/config"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/sampleattributes"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent"
 	scds "github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent/ds"
@@ -12,30 +16,22 @@ import (
 	"github.com/pennsieve/dbgap-prep/internal/subjects"
 	"github.com/pennsieve/dbgap-prep/internal/utils"
 	"github.com/xuri/excelize/v2"
-	"log/slog"
-	"path/filepath"
 )
 
 var logger = logging.PackageLogger("app")
 
 type App struct {
-	IntegrationID      string
-	WorkflowInstanceID string
-	InputDirectory     string
-	OutputDirectory    string
+	Config *config.Config
 }
 
-func NewApp(integrationID string, workflowInstanceID string, inputDirectory string, outputDirectory string) *App {
+func NewApp(config *config.Config) *App {
 	return &App{
-		IntegrationID:      integrationID,
-		WorkflowInstanceID: workflowInstanceID,
-		InputDirectory:     inputDirectory,
-		OutputDirectory:    outputDirectory,
+		Config: config,
 	}
 }
 
 func (a *App) Run() error {
-	subjectsPath := filepath.Join(a.InputDirectory, subjects.FileName)
+	subjectsPath := filepath.Join(a.Config.InputDirectory, subjects.FileName)
 	subjectsLogger := logger.With(slog.String("file", subjectsPath))
 
 	subjectsFile, err := openExcelInput(subjectsPath)
@@ -56,12 +52,12 @@ func (a *App) Run() error {
 		return nil
 	}
 
-	subjectsConsents, err := subjectconsent.WriteFiles(a.OutputDirectory, subs)
+	subjectsConsents, err := subjectconsent.WriteFiles(a.Config.OutputDirectory, a.Config.ConsentGroup, subs)
 	if err != nil {
 		return err
 	}
 
-	samplesPath := filepath.Join(a.InputDirectory, samples.FileName)
+	samplesPath := filepath.Join(a.Config.InputDirectory, samples.FileName)
 	samplesLogger := logger.With(slog.String("file", samplesPath))
 	samplesFile, err := openExcelInput(samplesPath)
 	if err != nil {
@@ -88,7 +84,7 @@ func (a *App) Run() error {
 	// empty columns.
 	subjectsHeader = pruneHeader(subjectsHeader, consentedSubjects, subjects.IDLabel, subjects.SexLabel)
 
-	if err := subjectphenotypes.WriteFiles(a.OutputDirectory, subjectsHeader, consentedSubjects); err != nil {
+	if err := subjectphenotypes.WriteFiles(a.Config.OutputDirectory, subjectsHeader, consentedSubjects); err != nil {
 		return err
 	}
 
@@ -97,14 +93,14 @@ func (a *App) Run() error {
 		return nil
 	}
 
-	if err := subjectsample.WriteFiles(a.OutputDirectory, consentedSamplesInSubjectOrder); err != nil {
+	if err := subjectsample.WriteFiles(a.Config.OutputDirectory, consentedSamplesInSubjectOrder); err != nil {
 		return err
 	}
 
 	// prune the samples header of empty columns so our samples attributes DD file does not contain
 	// empty columns.
 	samplesHeader = pruneHeader(samplesHeader, consentedSamples, samples.IDLabel, samples.SubjectIDLabel)
-	if err := sampleattributes.WriteFiles(a.OutputDirectory, samplesHeader, consentedSamples); err != nil {
+	if err := sampleattributes.WriteFiles(a.Config.OutputDirectory, samplesHeader, consentedSamples); err != nil {
 		return err
 	}
 

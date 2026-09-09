@@ -26,6 +26,8 @@ type Variable struct {
 	Attributes  map[Column]any
 	// Values should be left nil (or empty) if Type does not include EncodedValueType
 	Values []EncodedValue
+	// SourceColumnName is the name of the column where we get the value
+	SourceColumnName string
 }
 
 // ToDDRow returns this variable's attribute values as a slice in the same order
@@ -65,15 +67,17 @@ func (v *Variable) With(column Column, value any) *Variable {
 }
 
 var SubjectIDVar = &Variable{
-	Name:        "SUBJECT_ID",
-	Description: "Subject ID",
-	Type:        StringType,
+	Name:             "SUBJECT_ID",
+	Description:      "Subject ID",
+	Type:             StringType,
+	SourceColumnName: "subject id",
 }
 
 var SampleIDVar = &Variable{
-	Name:        "SAMPLE_ID",
-	Description: "Sample ID",
-	Type:        StringType,
+	Name:             "SAMPLE_ID",
+	Description:      "Sample ID",
+	Type:             StringType,
+	SourceColumnName: "sample id",
 }
 
 func VariableNames(variables []Variable) []string {
