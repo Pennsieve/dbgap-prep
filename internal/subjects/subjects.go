@@ -34,6 +34,15 @@ func (s Subject) GetValue(key string) (string, bool) {
 	return value, ok
 }
 
+func (s Subject) SearchValue(key string) (string, bool) {
+	for label, value := range s.Values {
+		if strings.EqualFold(key, label) {
+			return value, true
+		}
+	}
+	return "", false
+}
+
 func (s Subject) String() string {
 	return fmt.Sprintf("subject: id = [%s], sex = [%s], valueCount = %d",
 		s.ID,
@@ -79,7 +88,7 @@ func FromRow(header []string, row []string) (Subject, error) {
 			//skip these since they are already part of the struct
 		} else if i < len(row) {
 			// excelize does not give us empty cells beyond the last non-empty cell
-			if strings.ToLower(label) == strings.ToLower(SourceSubjectIDdbGapColumn) {
+			if strings.EqualFold(label, SourceSubjectIDdbGapColumn) {
 				subject.SourceSubjectIDdbGap = row[i]
 			} else {
 				values[label] = row[i]

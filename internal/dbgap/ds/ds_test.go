@@ -1,10 +1,12 @@
 package ds
 
 import (
+	"testing"
+
 	"github.com/google/uuid"
+	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestToRows(t *testing.T) {
@@ -12,12 +14,12 @@ func TestToRows(t *testing.T) {
 		ID string
 	}
 
-	toRow := func(_ []string, item TestItem) []string {
+	toRow := func(_ []dd.Variable, item TestItem) []string {
 		return []string{item.ID}
 	}
 
 	var items []TestItem
-	for i := 0; i < 13; i++ {
+	for range 13 {
 		items = append(items, TestItem{ID: uuid.NewString()})
 	}
 

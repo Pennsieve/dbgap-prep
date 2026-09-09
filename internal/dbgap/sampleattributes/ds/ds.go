@@ -8,15 +8,15 @@ import (
 
 const DefaultFileNameBase = "6a_SampleAttributes_DS"
 
-func ToRow(variableNames []string, sample samples.Sample) []string {
-	row := make([]string, 0, len(variableNames))
-	for _, variableName := range variableNames {
+func ToRow(variables []dd.Variable, sample samples.Sample) []string {
+	row := make([]string, 0, len(variables))
+	for _, variable := range variables {
 		var value string
-		switch variableName {
+		switch variable.Name {
 		case dd.SampleIDVar.Name:
 			value = sample.ID
 		default:
-			value = sample.Values[variableName]
+			value = sample.Values[variable.Name]
 		}
 		row = append(row, value)
 	}

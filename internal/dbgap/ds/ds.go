@@ -11,14 +11,13 @@ type Spec struct {
 	Variables []dd.Variable
 }
 
-type ToRowFunc[T any] func(variableNames []string, item T) []string
+type ToRowFunc[T any] func(variables []dd.Variable, item T) []string
 
 func ToRows[T any](variables []dd.Variable, items []T, toRow ToRowFunc[T]) [][]string {
-	variableNames := dd.VariableNames(variables)
 
 	rows := make([][]string, 0, len(items))
 	for _, item := range items {
-		rows = append(rows, toRow(variableNames, item))
+		rows = append(rows, toRow(variables, item))
 	}
 	return rows
 }
