@@ -20,7 +20,6 @@ func TestFromFile(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, IDLabel, header[IDIndex])
-	assert.Equal(t, SexLabel, header[SexIndex])
 
 	require.Len(t, subs, 5)
 

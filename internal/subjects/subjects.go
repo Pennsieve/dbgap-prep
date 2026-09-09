@@ -18,7 +18,6 @@ const SourceSubjectIDdbGapColumn = "SOURCE_SUBJECT_ID_dbGaP"
 
 const IDIndex = 0
 const IDLabel = "subject id"
-const SexIndex = 4
 const SexLabel = "sex"
 
 type Subject struct {
@@ -72,24 +71,21 @@ func FromRow(header []string, row []string) (Subject, error) {
 	if len(row) < IDIndex+1 {
 		return Subject{}, fmt.Errorf("subjects row is too short to contain required columns")
 	}
-	var sex string
-	if len(row) > SexIndex {
-		sex = row[SexIndex]
-	}
 	values := make(map[string]string, len(row)-2)
 	subject := Subject{
 		ID:     row[IDIndex],
-		Sex:    sex,
 		Values: values,
 	}
 
 	for i, label := range header {
-		if i == IDIndex || i == SexIndex {
-			//skip these since they are already part of the struct
+		if i == IDIndex {
+			//skip this since it is already part of the struct
 		} else if i < len(row) {
 			// excelize does not give us empty cells beyond the last non-empty cell
 			if strings.EqualFold(label, SourceSubjectIDdbGapColumn) {
 				subject.SourceSubjectIDdbGap = row[i]
+			} else if strings.EqualFold(label, SexLabel) {
+				subject.Sex = row[i]
 			} else {
 				values[label] = row[i]
 			}
