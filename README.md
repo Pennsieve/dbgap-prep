@@ -17,5 +17,5 @@ here: https://www.ncbi.nlm.nih.gov/gap/docs/submissionguide.
 If you have an example `subjects.xlsx` and `samples.xlsx` files you'd like to test with, run
 
 ```aiignore
- % go run cmd/local/main.go -i <input directory containing subjects.xlsx and samples.xlsx> -o <output directory>
+ % go run cmd/local/main.go -i <input directory containing subjects.xlsx and samples.xlsx> -o <output directory> -c <consent group, GRU or HMB> -a <analyte type, DNA, RNA, or DNA/RNA>
 ```
