@@ -3,6 +3,7 @@ package ds
 import (
 	"testing"
 
+	"github.com/pennsieve/dbgap-prep/internal/config"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/ds"
 	"github.com/pennsieve/dbgap-prep/internal/samples"
@@ -11,25 +12,10 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-func TestToRow(t *testing.T) {
-	for _, consentedSample := range consentedSubjectSamples {
-		row := ToRow(variables, consentedSample)
-		assert.Len(t, row, len(variables))
-		for i, variable := range variables {
-			if variable.Name == dd.SampleIDVar.Name {
-				assert.Equal(t, consentedSample.ID, row[i])
-			} else {
-				assert.Equal(t, consentedSample.Values[variable.Name], row[i])
-			}
-		}
-
-	}
-}
-
 func TestWrite(t *testing.T) {
 	writer := ds.NewXLSXWriter(t.TempDir(), DefaultFileNameBase)
 
-	require.NoError(t, Write(writer, variables, consentedSubjectSamples))
+	require.NoError(t, Write(writer, config.DNA, true, variables, consentedSubjectSamples))
 
 	actualFile, err := excelize.OpenFile(writer.Path())
 	require.NoError(t, err)

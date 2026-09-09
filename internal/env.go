@@ -38,7 +38,7 @@ func ConfigFromEnv() (*config.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	cfg.AnalyteType, err = LookupRequiredEnvVar(AnalyteTypeKey)
+	cfg.AnalyteType, err = LookupAnalyteTypeEnvVar()
 	if err != nil {
 		return nil, err
 	}
@@ -60,6 +60,14 @@ func LookupConsentGroupEnvVar() (config.ConsentGroup, error) {
 		return 0, err
 	}
 	return config.ConsentGroupFromString(strValue)
+}
+
+func LookupAnalyteTypeEnvVar() (config.AnalyteType, error) {
+	strValue, err := LookupRequiredEnvVar(AnalyteTypeKey)
+	if err != nil {
+		return 0, err
+	}
+	return config.AnalyteTypeFromString(strValue)
 }
 
 func LookupBoolEnvVar(key string, defaultValue bool) (bool, error) {

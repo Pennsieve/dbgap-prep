@@ -2,6 +2,9 @@ package dd
 
 import (
 	"strings"
+
+	"github.com/pennsieve/dbgap-prep/internal/samples"
+	"github.com/pennsieve/dbgap-prep/internal/subjects"
 )
 
 type Type string
@@ -70,14 +73,14 @@ var SubjectIDVar = &Variable{
 	Name:             "SUBJECT_ID",
 	Description:      "Subject ID",
 	Type:             StringType,
-	SourceColumnName: "subject id",
+	SourceColumnName: subjects.IDLabel,
 }
 
 var SampleIDVar = &Variable{
 	Name:             "SAMPLE_ID",
 	Description:      "Sample ID",
 	Type:             StringType,
-	SourceColumnName: "sample id",
+	SourceColumnName: samples.IDLabel,
 }
 
 func VariableNames(variables []Variable) []string {

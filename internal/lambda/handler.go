@@ -53,13 +53,17 @@ func configFromEvent(event Event) (*config.Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	analyteType, err := config.AnalyteTypeFromString(event.AnalyteType)
+	if err != nil {
+		return nil, err
+	}
 	return &config.Config{
 		IntegrationID:      event.IntegrationID,
 		WorkflowInstanceID: event.WorkflowInstanceID,
 		InputDirectory:     event.InputDirectory,
 		OutputDirectory:    event.OutputDirectory,
 		ConsentGroup:       consentGroup,
-		AnalyteType:        event.AnalyteType,
+		AnalyteType:        analyteType,
 		IsTumor:            bool(event.IsTumor),
 	}, nil
 }

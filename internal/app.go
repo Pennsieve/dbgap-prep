@@ -100,7 +100,7 @@ func (a *App) Run() error {
 	// prune the samples header of empty columns so our samples attributes DD file does not contain
 	// empty columns.
 	samplesHeader = pruneHeader(samplesHeader, consentedSamples, samples.IDLabel, samples.SubjectIDLabel)
-	if err := sampleattributes.WriteFiles(a.Config.OutputDirectory, samplesHeader, consentedSamples); err != nil {
+	if err := sampleattributes.WriteFiles(a.Config.OutputDirectory, a.Config.AnalyteType, a.Config.IsTumor, samplesHeader, consentedSamples); err != nil {
 		return err
 	}
 

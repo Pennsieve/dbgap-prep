@@ -31,7 +31,7 @@ func main() {
 		slog.String("inputDirectory", config.InputDirectory),
 		slog.String("outputDirectory", config.OutputDirectory),
 		slog.String("consentGroup", config.ConsentGroup.String()),
-		slog.String("analyteType", config.AnalyteType),
+		slog.String("analyteType", config.AnalyteType.String()),
 		slog.Bool("isTumor", config.IsTumor),
 	)
 

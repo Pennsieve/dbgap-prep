@@ -15,7 +15,6 @@ import (
 var canonicalVariables = []dd.Variable{*dd.SubjectIDVar, models.AgeVariable, models.SexVariable, models.RaceVariable, models.SubjectExperimentalGroupVariable}
 
 func WriteFiles(outputDirectory string, subjectsHeader []string, consentedSubjects []subjects.Subject) error {
-	fmt.Println(subjectsHeader)
 	variables := presentVariables(subjectsHeader)
 	spec := subjectgphenotypesdd.Spec(variables)
 
@@ -45,14 +44,4 @@ func presentVariables(subjectsHeader []string) []dd.Variable {
 		}
 	}
 	return present
-}
-
-func HeaderToAttributeLabels(subjectsHeader []string) []string {
-	cleaned := make([]string, 0, len(subjectsHeader))
-	for _, label := range subjectsHeader {
-		if label != subjects.IDLabel && label != subjects.SexLabel {
-			cleaned = append(cleaned, label)
-		}
-	}
-	return cleaned
 }
