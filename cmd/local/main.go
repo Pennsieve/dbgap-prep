@@ -36,7 +36,7 @@ func init() {
 	flag.StringVar(&analyteType, "analyte-type", "", analyteTypeUsage)
 	flag.StringVar(&analyteType, "a", "", analyteTypeUsage+" (shorthand)")
 
-	isTumorUsage := "true if samples are tumors"
+	isTumorUsage := "true if samples are tumors; specified as -t (or -t=false)"
 	flag.BoolVar(&isTumor, "tumor", false, isTumorUsage)
 	flag.BoolVar(&isTumor, "t", false, isTumorUsage+" (shorthand)")
 }
