@@ -1,12 +1,12 @@
 package samples
 
 import (
-	"fmt"
+	"path/filepath"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/xuri/excelize/v2"
-	"path/filepath"
-	"testing"
 )
 
 func TestFromFile(t *testing.T) {
@@ -18,8 +18,6 @@ func TestFromFile(t *testing.T) {
 	}()
 	samplesHeader, samps, err := FromFile(file)
 	require.NoError(t, err)
-
-	fmt.Println(samplesHeader)
 
 	assert.Equal(t, IDLabel, samplesHeader[IDIndex])
 	assert.Equal(t, SubjectIDLabel, samplesHeader[SubjectIDIndex])

@@ -20,7 +20,7 @@ var analyteType string
 var isTumor bool
 
 func init() {
-	inputUsage := "input directory containing subjects.xlsx and samples.xlsx"
+	inputUsage := "input directory containing dataset_description.xlsx, subjects.xlsx, and samples.xlsx"
 	flag.StringVar(&inputDirectory, "input-directory", "", inputUsage)
 	flag.StringVar(&inputDirectory, "i", "", inputUsage+" (shorthand)")
 
