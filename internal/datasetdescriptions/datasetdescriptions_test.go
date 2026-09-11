@@ -19,6 +19,7 @@ func TestFromFile(t *testing.T) {
 	}{
 		{"first version wording", "dataset_description__doi-for-first-version.xlsx", "Test Dataset Alpha", "https://doi.org/10.26275/bb00-frst"},
 		{"this dataset wording", "dataset_description__doi-for-this-dataset.xlsx", "Test Dataset Alpha", "https://doi.org/10.26275/aa00-this"},
+		{"first version with no 'the'", "dataset_description__doi-first-version-no-the.xlsx", "Test Dataset Gamma", "https://doi.org/10.26275/gg00-frst"},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
