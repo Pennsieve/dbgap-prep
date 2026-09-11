@@ -13,7 +13,7 @@ var UnknownSex = dd.NewEncodedValue("UNK", "Unknown")
 
 var SexVar = &dd.Variable{
 	Name:             "SEX",
-	Description:      "Biological Sex",
+	Description:      "Biological sex",
 	Type:             dd.EncodedValueType,
 	Values:           []dd.EncodedValue{MaleSex, FemaleSex, UnknownSex},
 	SourceColumnName: subjects.SexLabel,

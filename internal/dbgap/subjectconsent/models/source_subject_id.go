@@ -7,7 +7,7 @@ import (
 
 var SourceSubjectID = &dd.Variable{
 	Name:             "SOURCE_SUBJECT_ID",
-	Description:      "Subject identifier used by the external source repository",
+	Description:      "Subject identifier used by the external source repository named in SUBJECT_SOURCE, linking a SPARC subject to its corresponding dbGaP submission record, formatted as <SPARC study UUID>#sub-XXXX",
 	Type:             dd.StringType,
 	SourceColumnName: subjects.SourceSubjectIDdbGapColumn,
 }
