@@ -19,6 +19,8 @@ var GRUConsent = dd.NewEncodedValue(ConsentedValue, "General Research Use (GRU)"
 
 var HMBConsent = dd.NewEncodedValue(ConsentedValue, "Health/Medical/Biomedical (HMB)")
 
+var OtherConsent = dd.NewEncodedValue(ConsentedValue, "Other (PLEASE CHANGE)")
+
 func ConsentVariable(consentGroup config.ConsentGroup) (dd.Variable, error) {
 	consentVariable := dd.Variable{
 		Name:        "CONSENT",
@@ -30,6 +32,8 @@ func ConsentVariable(consentGroup config.ConsentGroup) (dd.Variable, error) {
 		consentVariable.Values = []dd.EncodedValue{GRUConsent}
 	case config.HMB:
 		consentVariable.Values = []dd.EncodedValue{HMBConsent}
+	case config.OTHER:
+		consentVariable.Values = []dd.EncodedValue{OtherConsent}
 	default:
 		return dd.Variable{}, fmt.Errorf("unknown consent group: %d", consentGroup)
 

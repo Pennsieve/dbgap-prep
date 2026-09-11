@@ -10,6 +10,7 @@ type ConsentGroup int
 const (
 	GRU ConsentGroup = iota
 	HMB
+	OTHER
 )
 
 func (g ConsentGroup) String() string {
@@ -18,6 +19,8 @@ func (g ConsentGroup) String() string {
 		return "GRU"
 	case HMB:
 		return "HMB"
+	case OTHER:
+		return "Other"
 	default:
 		return "UNKNOWN"
 	}
@@ -29,6 +32,8 @@ func ConsentGroupFromString(s string) (ConsentGroup, error) {
 		return GRU, nil
 	case strings.ToLower(HMB.String()):
 		return HMB, nil
+	case strings.ToLower(OTHER.String()):
+		return OTHER, nil
 	default:
 		return 0, fmt.Errorf("unknown consent group '%s'", s)
 	}

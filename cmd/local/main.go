@@ -28,7 +28,7 @@ func init() {
 	flag.StringVar(&outputDirectory, "output-directory", "", outputUsage)
 	flag.StringVar(&outputDirectory, "o", "", outputUsage+" (shorthand)")
 
-	consentGroupUsage := fmt.Sprintf("consent group name; either %s or %s", config.GRU, config.HMB)
+	consentGroupUsage := fmt.Sprintf("consent group name; either %s, %s, or %s", config.GRU, config.HMB, config.OTHER)
 	flag.StringVar(&consentGroup, "consent-group", "", consentGroupUsage)
 	flag.StringVar(&consentGroup, "c", "", consentGroupUsage+" (shorthand)")
 

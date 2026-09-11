@@ -12,10 +12,11 @@ runtime:
 parameters:
   - name: CONSENT_GROUP
     type: string
-    description: Sets the 2b CONSENT text
+    description: Sets the 2b CONSENT text. 'Other' will have to be replaced manually before submission.
     validValues:
       - GRU
       - HMB
+      - Other
   - name: ANALYTE_TYPE
     type: string
     description: Applied to every 6a row
