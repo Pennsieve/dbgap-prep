@@ -4,19 +4,20 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pennsieve/dbgap-prep/internal/config"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/ds"
 	sampleattributesdd "github.com/pennsieve/dbgap-prep/internal/dbgap/sampleattributes/dd"
 	sampleattributesds "github.com/pennsieve/dbgap-prep/internal/dbgap/sampleattributes/ds"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/sampleattributes/models"
+	"github.com/pennsieve/dbgap-prep/internal/enums/analytetype"
+	"github.com/pennsieve/dbgap-prep/internal/enums/istumor"
 
 	"github.com/pennsieve/dbgap-prep/internal/samples"
 )
 
 var canonicalVariables = []dd.Variable{*dd.SampleIDVar, models.BodySiteVar, models.AnalyteTypeVar, models.IsTumorVar, models.LateralityVar, models.SampleCollectionSiteVar, models.SPARCDatasetDOIVar}
 
-func WriteFiles(outputDirectory string, analyteType config.AnalyteType, isTumor config.IsTumor, samplesHeader []string, consentedSubjectSamples []samples.Sample) error {
+func WriteFiles(outputDirectory string, analyteType analytetype.Type, isTumor istumor.Value, samplesHeader []string, consentedSubjectSamples []samples.Sample) error {
 	variables := presentVariables(samplesHeader)
 	spec := sampleattributesdd.Spec(variables)
 	ddWriter := dd.NewXLSXWriter(outputDirectory, spec.FileName)

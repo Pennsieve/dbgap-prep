@@ -3,8 +3,8 @@ package models
 import (
 	"fmt"
 
-	"github.com/pennsieve/dbgap-prep/internal/config"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
+	"github.com/pennsieve/dbgap-prep/internal/enums/consentgroup"
 	"github.com/pennsieve/dbgap-prep/internal/subjects"
 )
 
@@ -21,18 +21,18 @@ var HMBConsent = dd.NewEncodedValue(ConsentedValue, "Health/Medical/Biomedical (
 
 var OtherConsent = dd.NewEncodedValue(ConsentedValue, "Other (PLEASE CHANGE)")
 
-func ConsentVariable(consentGroup config.ConsentGroup) (dd.Variable, error) {
+func ConsentVariable(consentGroup consentgroup.Group) (dd.Variable, error) {
 	consentVariable := dd.Variable{
 		Name:        "CONSENT",
 		Description: "Consent group as determined by DAC",
 		Type:        dd.EncodedValueType,
 	}
 	switch consentGroup {
-	case config.GRU:
+	case consentgroup.GRU:
 		consentVariable.Values = []dd.EncodedValue{GRUConsent}
-	case config.HMB:
+	case consentgroup.HMB:
 		consentVariable.Values = []dd.EncodedValue{HMBConsent}
-	case config.OTHER:
+	case consentgroup.OTHER:
 		consentVariable.Values = []dd.EncodedValue{OtherConsent}
 	default:
 		return dd.Variable{}, fmt.Errorf("unknown consent group: %d", consentGroup)

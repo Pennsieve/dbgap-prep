@@ -8,6 +8,9 @@ import (
 
 	app "github.com/pennsieve/dbgap-prep/internal"
 	"github.com/pennsieve/dbgap-prep/internal/config"
+	"github.com/pennsieve/dbgap-prep/internal/enums/analytetype"
+	"github.com/pennsieve/dbgap-prep/internal/enums/consentgroup"
+	"github.com/pennsieve/dbgap-prep/internal/enums/istumor"
 	"github.com/pennsieve/dbgap-prep/internal/logging"
 )
 
@@ -28,17 +31,17 @@ func init() {
 	flag.StringVar(&outputDirectory, "output-directory", "", outputUsage)
 	flag.StringVar(&outputDirectory, "o", "", outputUsage+" (shorthand)")
 
-	consentGroupUsage := fmt.Sprintf("consent group name; either %s, %s, or %s", config.GRU, config.HMB, config.OTHER)
+	consentGroupUsage := fmt.Sprintf("consent group name; either %s, %s, or %s", consentgroup.GRU, consentgroup.HMB, consentgroup.OTHER)
 	flag.StringVar(&consentGroup, "consent-group", "", consentGroupUsage)
 	flag.StringVar(&consentGroup, "c", "", consentGroupUsage+" (shorthand)")
 
-	analyteTypeUsage := fmt.Sprintf("analyte type; one of %s, %s, %s", config.DNA, config.RNA, config.DNARNA)
+	analyteTypeUsage := fmt.Sprintf("analyte type; one of %s, %s, %s", analytetype.DNA, analytetype.RNA, analytetype.DNARNA)
 	flag.StringVar(&analyteType, "analyte-type", "", analyteTypeUsage)
 	flag.StringVar(&analyteType, "a", "", analyteTypeUsage+" (shorthand)")
 
-	isTumorUsage := fmt.Sprintf("tumor status of the samples; one of %s or %s", config.YES, config.NO)
-	flag.StringVar(&isTumor, "tumor", config.NO.String(), isTumorUsage)
-	flag.StringVar(&isTumor, "t", config.NO.String(), isTumorUsage+" (shorthand)")
+	isTumorUsage := fmt.Sprintf("tumor status of the samples; one of %s or %s", istumor.YES, istumor.NO)
+	flag.StringVar(&isTumor, "tumor", istumor.NO.String(), isTumorUsage)
+	flag.StringVar(&isTumor, "t", istumor.NO.String(), isTumorUsage+" (shorthand)")
 }
 
 func main() {
@@ -62,20 +65,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	cg, err := config.ConsentGroupFromString(consentGroup)
+	cg, err := consentgroup.FromString(consentGroup)
 	if err != nil {
 		logger.Error(err.Error())
 		flag.Usage()
 		os.Exit(1)
 	}
 
-	at, err := config.AnalyteTypeFromString(analyteType)
+	at, err := analytetype.FromString(analyteType)
 	if err != nil {
 		logger.Error(err.Error())
 		flag.Usage()
 		os.Exit(1)
 	}
-	it, err := config.IsTumorFromString(isTumor)
+	it, err := istumor.FromString(isTumor)
 	if err != nil {
 		logger.Error(err.Error())
 		flag.Usage()

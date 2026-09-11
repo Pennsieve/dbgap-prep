@@ -6,6 +6,9 @@ import (
 	"os"
 
 	"github.com/pennsieve/dbgap-prep/internal/config"
+	"github.com/pennsieve/dbgap-prep/internal/enums/analytetype"
+	"github.com/pennsieve/dbgap-prep/internal/enums/consentgroup"
+	"github.com/pennsieve/dbgap-prep/internal/enums/istumor"
 )
 
 const IntegrationIDKey = "INTEGRATION_ID"
@@ -41,7 +44,7 @@ func ConfigFromEnv() (*config.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	cfg.IsTumor, err = LookupIsTumorEnvVar(IsTumorKey, config.NO)
+	cfg.IsTumor, err = LookupIsTumorEnvVar(IsTumorKey, istumor.NO)
 	return &cfg, nil
 }
 
@@ -53,23 +56,23 @@ func LookupRequiredEnvVar(key string) (string, error) {
 	return value, nil
 }
 
-func LookupConsentGroupEnvVar() (config.ConsentGroup, error) {
+func LookupConsentGroupEnvVar() (consentgroup.Group, error) {
 	strValue, err := LookupRequiredEnvVar(ConsentGroupKey)
 	if err != nil {
 		return 0, err
 	}
-	return config.ConsentGroupFromString(strValue)
+	return consentgroup.FromString(strValue)
 }
 
-func LookupAnalyteTypeEnvVar() (config.AnalyteType, error) {
+func LookupAnalyteTypeEnvVar() (analytetype.Type, error) {
 	strValue, err := LookupRequiredEnvVar(AnalyteTypeKey)
 	if err != nil {
 		return 0, err
 	}
-	return config.AnalyteTypeFromString(strValue)
+	return analytetype.FromString(strValue)
 }
 
-func LookupIsTumorEnvVar(key string, defaultValue config.IsTumor) (config.IsTumor, error) {
+func LookupIsTumorEnvVar(key string, defaultValue istumor.Value) (istumor.Value, error) {
 	value := os.Getenv(key)
 	if len(value) == 0 {
 		logger.Info("env var not set; using default",
@@ -78,5 +81,5 @@ func LookupIsTumorEnvVar(key string, defaultValue config.IsTumor) (config.IsTumo
 		)
 		return defaultValue, nil
 	}
-	return config.IsTumorFromString(value)
+	return istumor.FromString(value)
 }

@@ -3,9 +3,10 @@ package sampleattributes
 import (
 	"testing"
 
-	"github.com/pennsieve/dbgap-prep/internal/config"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/sampleattributes/models"
+	"github.com/pennsieve/dbgap-prep/internal/enums/analytetype"
+	"github.com/pennsieve/dbgap-prep/internal/enums/istumor"
 	"github.com/pennsieve/dbgap-prep/internal/samples"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -71,7 +72,7 @@ func TestWriteFiles(t *testing.T) {
 	}
 
 	outputDirectory := t.TempDir()
-	require.NoError(t, WriteFiles(outputDirectory, config.RNA, config.YES, samplesHeader, consentedSamples))
+	require.NoError(t, WriteFiles(outputDirectory, analytetype.RNA, istumor.YES, samplesHeader, consentedSamples))
 
 	dsFile, err := excelize.OpenFile(outputDirectory + "/6a_SampleAttributes_DS.xlsx")
 	require.NoError(t, err)
@@ -86,8 +87,8 @@ func TestWriteFiles(t *testing.T) {
 	analyteTypeIdx := indexOfHeader(t, records[0], models.AnalyteTypeVar.Name)
 	isTumorIdx := indexOfHeader(t, records[0], models.IsTumorVar.Name)
 	for _, dataRow := range records[1:] {
-		assert.Equal(t, config.RNA.String(), dataRow[analyteTypeIdx])
-		assert.Equal(t, config.YES.String(), dataRow[isTumorIdx])
+		assert.Equal(t, analytetype.RNA.String(), dataRow[analyteTypeIdx])
+		assert.Equal(t, istumor.YES.String(), dataRow[isTumorIdx])
 	}
 }
 
@@ -98,7 +99,7 @@ func TestWriteFiles_ComputedColumnsPopulatedWithoutOptionalSourceColumns(t *test
 	}
 
 	outputDirectory := t.TempDir()
-	require.NoError(t, WriteFiles(outputDirectory, config.DNARNA, config.NO, samplesHeader, consentedSamples))
+	require.NoError(t, WriteFiles(outputDirectory, analytetype.DNARNA, istumor.NO, samplesHeader, consentedSamples))
 
 	dsFile, err := excelize.OpenFile(outputDirectory + "/6a_SampleAttributes_DS.xlsx")
 	require.NoError(t, err)
@@ -112,8 +113,8 @@ func TestWriteFiles_ComputedColumnsPopulatedWithoutOptionalSourceColumns(t *test
 
 	analyteTypeIdx := indexOfHeader(t, records[0], models.AnalyteTypeVar.Name)
 	isTumorIdx := indexOfHeader(t, records[0], models.IsTumorVar.Name)
-	assert.Equal(t, config.DNARNA.String(), records[1][analyteTypeIdx])
-	assert.Equal(t, config.NO.String(), records[1][isTumorIdx])
+	assert.Equal(t, analytetype.DNARNA.String(), records[1][analyteTypeIdx])
+	assert.Equal(t, istumor.NO.String(), records[1][isTumorIdx])
 }
 
 func indexOfHeader(t *testing.T, header []string, name string) int {

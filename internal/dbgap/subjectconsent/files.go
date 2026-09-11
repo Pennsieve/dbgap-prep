@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/pennsieve/dbgap-prep/internal/config"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/ds"
 	scdd "github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent/dd"
 	scds "github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent/ds"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent/models"
+	"github.com/pennsieve/dbgap-prep/internal/enums/consentgroup"
 	"github.com/pennsieve/dbgap-prep/internal/logging"
 	"github.com/pennsieve/dbgap-prep/internal/subjects"
 )
 
 var logger = logging.PackageLogger("subjectconsent")
 
-func WriteFiles(outputDirectory string, consentGroup config.ConsentGroup, subs []subjects.Subject) ([]scds.SubjectConsent, error) {
+func WriteFiles(outputDirectory string, consentGroup consentgroup.Group, subs []subjects.Subject) ([]scds.SubjectConsent, error) {
 	consentVariable, err := models.ConsentVariable(consentGroup)
 	if err != nil {
 		return nil, err

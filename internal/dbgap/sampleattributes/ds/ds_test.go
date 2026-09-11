@@ -3,10 +3,11 @@ package ds
 import (
 	"testing"
 
-	"github.com/pennsieve/dbgap-prep/internal/config"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/ds"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/sampleattributes/models"
+	"github.com/pennsieve/dbgap-prep/internal/enums/analytetype"
+	"github.com/pennsieve/dbgap-prep/internal/enums/istumor"
 	"github.com/pennsieve/dbgap-prep/internal/samples"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -16,7 +17,7 @@ import (
 func TestWrite(t *testing.T) {
 	writer := ds.NewXLSXWriter(t.TempDir(), DefaultFileNameBase)
 
-	require.NoError(t, Write(writer, config.DNA, config.YES, variables, consentedSubjectSamples))
+	require.NoError(t, Write(writer, analytetype.DNA, istumor.YES, variables, consentedSubjectSamples))
 
 	actualFile, err := excelize.OpenFile(writer.Path())
 	require.NoError(t, err)
@@ -37,8 +38,8 @@ func TestWrite(t *testing.T) {
 	analyteTypeIdx := indexOf(t, records[0], models.AnalyteTypeVar.Name)
 	isTumorIdx := indexOf(t, records[0], models.IsTumorVar.Name)
 	for _, dataRow := range records[1:] {
-		assert.Equal(t, config.DNA.String(), dataRow[analyteTypeIdx])
-		assert.Equal(t, config.YES.String(), dataRow[isTumorIdx])
+		assert.Equal(t, analytetype.DNA.String(), dataRow[analyteTypeIdx])
+		assert.Equal(t, istumor.YES.String(), dataRow[isTumorIdx])
 	}
 }
 
@@ -61,8 +62,8 @@ func TestNewToRow(t *testing.T) {
 
 	sample := samples.Sample{ID: "sam-1", SubjectID: "sub-1", Values: map[string]string{}}
 
-	for _, analyteType := range []config.AnalyteType{config.DNA, config.RNA, config.DNARNA} {
-		for _, isTumor := range []config.IsTumor{config.YES, config.NO} {
+	for _, analyteType := range []analytetype.Type{analytetype.DNA, analytetype.RNA, analytetype.DNARNA} {
+		for _, isTumor := range []istumor.Value{istumor.YES, istumor.NO} {
 			t.Run(analyteType.String()+"/"+isTumor.String(), func(t *testing.T) {
 				row := NewToRow(analyteType, isTumor)(rowVariables, sample)
 

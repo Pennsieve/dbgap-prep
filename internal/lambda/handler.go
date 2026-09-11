@@ -7,6 +7,9 @@ import (
 
 	app "github.com/pennsieve/dbgap-prep/internal"
 	"github.com/pennsieve/dbgap-prep/internal/config"
+	"github.com/pennsieve/dbgap-prep/internal/enums/analytetype"
+	"github.com/pennsieve/dbgap-prep/internal/enums/consentgroup"
+	"github.com/pennsieve/dbgap-prep/internal/enums/istumor"
 	"github.com/pennsieve/dbgap-prep/internal/logging"
 )
 
@@ -48,15 +51,15 @@ func Handler(_ context.Context, event Event) error {
 }
 
 func configFromEvent(event Event) (*config.Config, error) {
-	consentGroup, err := config.ConsentGroupFromString(event.ConsentGroup)
+	consentGroup, err := consentgroup.FromString(event.ConsentGroup)
 	if err != nil {
 		return nil, err
 	}
-	analyteType, err := config.AnalyteTypeFromString(event.AnalyteType)
+	analyteType, err := analytetype.FromString(event.AnalyteType)
 	if err != nil {
 		return nil, err
 	}
-	isTumor, err := config.IsTumorFromString(event.IsTumor)
+	isTumor, err := istumor.FromString(event.IsTumor)
 	if err != nil {
 		return nil, err
 	}
