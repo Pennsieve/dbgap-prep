@@ -17,7 +17,7 @@ var inputDirectory string
 var outputDirectory string
 var consentGroup string
 var analyteType string
-var isTumor bool
+var isTumor string
 
 func init() {
 	inputUsage := "input directory containing dataset_description.xlsx, subjects.xlsx, and samples.xlsx"
@@ -36,9 +36,9 @@ func init() {
 	flag.StringVar(&analyteType, "analyte-type", "", analyteTypeUsage)
 	flag.StringVar(&analyteType, "a", "", analyteTypeUsage+" (shorthand)")
 
-	isTumorUsage := "true if samples are tumors; specified as -t (or -t=false)"
-	flag.BoolVar(&isTumor, "tumor", false, isTumorUsage)
-	flag.BoolVar(&isTumor, "t", false, isTumorUsage+" (shorthand)")
+	isTumorUsage := fmt.Sprintf("tumor status of the samples; one of %s or %s", config.YES, config.NO)
+	flag.StringVar(&isTumor, "tumor", config.NO.String(), isTumorUsage)
+	flag.StringVar(&isTumor, "t", config.NO.String(), isTumorUsage+" (shorthand)")
 }
 
 func main() {
@@ -75,6 +75,12 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
+	it, err := config.IsTumorFromString(isTumor)
+	if err != nil {
+		logger.Error(err.Error())
+		flag.Usage()
+		os.Exit(1)
+	}
 
 	cfg := &config.Config{
 		IntegrationID:      "NA",
@@ -83,7 +89,7 @@ func main() {
 		OutputDirectory:    outputDirectory,
 		ConsentGroup:       cg,
 		AnalyteType:        at,
-		IsTumor:            isTumor,
+		IsTumor:            it,
 	}
 
 	dbgap := app.NewApp(cfg)
@@ -94,7 +100,7 @@ func main() {
 		slog.String("outputDirectory", dbgap.Config.OutputDirectory),
 		slog.String("consentGroup", dbgap.Config.ConsentGroup.String()),
 		slog.String("analyteType", dbgap.Config.AnalyteType.String()),
-		slog.Bool("isTumor", dbgap.Config.IsTumor),
+		slog.String("isTumor", dbgap.Config.IsTumor.String()),
 	)
 
 	if err := dbgap.Run(); err != nil {

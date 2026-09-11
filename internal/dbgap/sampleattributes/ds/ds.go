@@ -10,7 +10,7 @@ import (
 
 const DefaultFileNameBase = "6a_SampleAttributes_DS"
 
-func NewToRow(analyteType config.AnalyteType, isTumor bool) ds.ToRowFunc[samples.Sample] {
+func NewToRow(analyteType config.AnalyteType, isTumor config.IsTumor) ds.ToRowFunc[samples.Sample] {
 	return func(variables []dd.Variable, sample samples.Sample) []string {
 		row := make([]string, 0, len(variables))
 		for _, variable := range variables {
@@ -21,7 +21,7 @@ func NewToRow(analyteType config.AnalyteType, isTumor bool) ds.ToRowFunc[samples
 			case models.AnalyteTypeVar.Name:
 				value = analyteType.String()
 			case models.IsTumorVar.Name:
-				value = models.ToIsTumorValue(isTumor)
+				value = isTumor.String()
 			default:
 				value = sample.Values[variable.SourceColumnName]
 			}
@@ -31,7 +31,7 @@ func NewToRow(analyteType config.AnalyteType, isTumor bool) ds.ToRowFunc[samples
 	}
 }
 
-func Write(writer ds.Writer, analyteType config.AnalyteType, isTumor bool, variables []dd.Variable, consentedSubjectSamples []samples.Sample) error {
+func Write(writer ds.Writer, analyteType config.AnalyteType, isTumor config.IsTumor, variables []dd.Variable, consentedSubjectSamples []samples.Sample) error {
 	rows := ds.ToRows(variables, consentedSubjectSamples, NewToRow(analyteType, isTumor))
 
 	spec := ds.Spec{Variables: variables}

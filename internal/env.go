@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"strconv"
 
 	"github.com/pennsieve/dbgap-prep/internal/config"
 )
@@ -42,7 +41,7 @@ func ConfigFromEnv() (*config.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	cfg.IsTumor, err = LookupBoolEnvVar(IsTumorKey, false)
+	cfg.IsTumor, err = LookupIsTumorEnvVar(IsTumorKey, config.NO)
 	return &cfg, nil
 }
 
@@ -70,20 +69,14 @@ func LookupAnalyteTypeEnvVar() (config.AnalyteType, error) {
 	return config.AnalyteTypeFromString(strValue)
 }
 
-func LookupBoolEnvVar(key string, defaultValue bool) (bool, error) {
+func LookupIsTumorEnvVar(key string, defaultValue config.IsTumor) (config.IsTumor, error) {
 	value := os.Getenv(key)
 	if len(value) == 0 {
 		logger.Info("env var not set; using default",
 			slog.String("key", key),
-			slog.Bool("default", defaultValue),
+			slog.String("default", defaultValue.String()),
 		)
 		return defaultValue, nil
 	}
-	boolValue, err := strconv.ParseBool(value)
-	if err != nil {
-		// Thinking that if there is an unparsable value,
-		// we should treat as an error rather than silently use the default.
-		return false, err
-	}
-	return boolValue, nil
+	return config.IsTumorFromString(value)
 }

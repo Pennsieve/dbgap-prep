@@ -25,6 +25,10 @@ parameters:
       - RNA
       - DNA/RNA
   - name: IS_TUMOR
-    type: boolean
-    defaultValue: 'false'
+    type: string
+    description: The tumor status of the samples. For non-cancer studies, the values of IS_TUMOR should be No.
+    defaultValue: 'No'
+    validValues:
+      - 'Yes'
+      - 'No'
     required: true

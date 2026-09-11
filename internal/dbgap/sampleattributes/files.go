@@ -16,7 +16,7 @@ import (
 
 var canonicalVariables = []dd.Variable{*dd.SampleIDVar, models.BodySiteVar, models.AnalyteTypeVar, models.IsTumorVar, models.LateralityVar, models.SampleCollectionSiteVar, models.SPARCDatasetDOIVar}
 
-func WriteFiles(outputDirectory string, analyteType config.AnalyteType, isTumor bool, samplesHeader []string, consentedSubjectSamples []samples.Sample) error {
+func WriteFiles(outputDirectory string, analyteType config.AnalyteType, isTumor config.IsTumor, samplesHeader []string, consentedSubjectSamples []samples.Sample) error {
 	variables := presentVariables(samplesHeader)
 	spec := sampleattributesdd.Spec(variables)
 	ddWriter := dd.NewXLSXWriter(outputDirectory, spec.FileName)

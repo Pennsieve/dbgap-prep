@@ -16,7 +16,7 @@ import (
 func TestWrite(t *testing.T) {
 	writer := ds.NewXLSXWriter(t.TempDir(), DefaultFileNameBase)
 
-	require.NoError(t, Write(writer, config.DNA, true, variables, consentedSubjectSamples))
+	require.NoError(t, Write(writer, config.DNA, config.YES, variables, consentedSubjectSamples))
 
 	actualFile, err := excelize.OpenFile(writer.Path())
 	require.NoError(t, err)
@@ -38,7 +38,7 @@ func TestWrite(t *testing.T) {
 	isTumorIdx := indexOf(t, records[0], models.IsTumorVar.Name)
 	for _, dataRow := range records[1:] {
 		assert.Equal(t, config.DNA.String(), dataRow[analyteTypeIdx])
-		assert.Equal(t, models.ToIsTumorValue(true), dataRow[isTumorIdx])
+		assert.Equal(t, config.YES.String(), dataRow[isTumorIdx])
 	}
 }
 
@@ -62,13 +62,13 @@ func TestNewToRow(t *testing.T) {
 	sample := samples.Sample{ID: "sam-1", SubjectID: "sub-1", Values: map[string]string{}}
 
 	for _, analyteType := range []config.AnalyteType{config.DNA, config.RNA, config.DNARNA} {
-		for _, isTumor := range []bool{true, false} {
-			t.Run(analyteType.String()+"/"+models.ToIsTumorValue(isTumor), func(t *testing.T) {
+		for _, isTumor := range []config.IsTumor{config.YES, config.NO} {
+			t.Run(analyteType.String()+"/"+isTumor.String(), func(t *testing.T) {
 				row := NewToRow(analyteType, isTumor)(rowVariables, sample)
 
 				assert.Equal(t, sample.ID, row[sampleIDIdx])
 				assert.Equal(t, analyteType.String(), row[analyteTypeIdx])
-				assert.Equal(t, models.ToIsTumorValue(isTumor), row[isTumorIdx])
+				assert.Equal(t, isTumor.String(), row[isTumorIdx])
 			})
 		}
 	}

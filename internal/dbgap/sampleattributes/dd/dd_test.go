@@ -20,9 +20,8 @@ func TestSpec_EncodedValueVariable(t *testing.T) {
 	require.Equal(models.IsTumorVar.Name, row[0])
 	require.Equal(models.IsTumorVar.Description, row[1])
 	require.Equal(models.IsTumorVar.Type, row[2])
-	require.Equal("Y=Is tumor", row[3].(dd.EncodedValue).String())
-	require.Equal("N=Is not a tumor", row[4].(dd.EncodedValue).String())
-	require.Equal("UNK=Tumor status unknown", row[5].(dd.EncodedValue).String())
+	require.Equal("Yes=Is tumor", row[3].(dd.EncodedValue).String())
+	require.Equal("No=Is not a tumor", row[4].(dd.EncodedValue).String())
 }
 
 func TestSpec_StringVariable(t *testing.T) {

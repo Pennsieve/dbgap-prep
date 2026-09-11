@@ -1,6 +1,8 @@
 package models
 
-import "github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
+import (
+	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
+)
 
 var BodySiteVar = dd.Variable{
 	Name:             "BODY_SITE",
@@ -15,22 +17,14 @@ var AnalyteTypeVar = dd.Variable{
 	Type:        dd.StringType,
 }
 
-var IsTumor = dd.NewEncodedValue("Y", "Is tumor")
-var NotTumor = dd.NewEncodedValue("N", "Is not a tumor")
-var UnknownTumor = dd.NewEncodedValue("UNK", "Tumor status unknown")
+var IsTumor = dd.NewEncodedValue("Yes", "Is tumor")
+var NotTumor = dd.NewEncodedValue("No", "Is not a tumor")
 
 var IsTumorVar = dd.Variable{
 	Name:        "IS_TUMOR",
 	Description: "Tumor status of the sample",
 	Type:        dd.EncodedValueType,
-	Values:      []dd.EncodedValue{IsTumor, NotTumor, UnknownTumor},
-}
-
-func ToIsTumorValue(isTumor bool) string {
-	if isTumor {
-		return IsTumor.Value
-	}
-	return NotTumor.Value
+	Values:      []dd.EncodedValue{IsTumor, NotTumor},
 }
 
 var LateralityVar = dd.Variable{

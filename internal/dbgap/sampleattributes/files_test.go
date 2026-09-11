@@ -71,7 +71,7 @@ func TestWriteFiles(t *testing.T) {
 	}
 
 	outputDirectory := t.TempDir()
-	require.NoError(t, WriteFiles(outputDirectory, config.RNA, true, samplesHeader, consentedSamples))
+	require.NoError(t, WriteFiles(outputDirectory, config.RNA, config.YES, samplesHeader, consentedSamples))
 
 	dsFile, err := excelize.OpenFile(outputDirectory + "/6a_SampleAttributes_DS.xlsx")
 	require.NoError(t, err)
@@ -87,7 +87,7 @@ func TestWriteFiles(t *testing.T) {
 	isTumorIdx := indexOfHeader(t, records[0], models.IsTumorVar.Name)
 	for _, dataRow := range records[1:] {
 		assert.Equal(t, config.RNA.String(), dataRow[analyteTypeIdx])
-		assert.Equal(t, models.ToIsTumorValue(true), dataRow[isTumorIdx])
+		assert.Equal(t, config.YES.String(), dataRow[isTumorIdx])
 	}
 }
 
@@ -98,7 +98,7 @@ func TestWriteFiles_ComputedColumnsPopulatedWithoutOptionalSourceColumns(t *test
 	}
 
 	outputDirectory := t.TempDir()
-	require.NoError(t, WriteFiles(outputDirectory, config.DNARNA, false, samplesHeader, consentedSamples))
+	require.NoError(t, WriteFiles(outputDirectory, config.DNARNA, config.NO, samplesHeader, consentedSamples))
 
 	dsFile, err := excelize.OpenFile(outputDirectory + "/6a_SampleAttributes_DS.xlsx")
 	require.NoError(t, err)
@@ -113,7 +113,7 @@ func TestWriteFiles_ComputedColumnsPopulatedWithoutOptionalSourceColumns(t *test
 	analyteTypeIdx := indexOfHeader(t, records[0], models.AnalyteTypeVar.Name)
 	isTumorIdx := indexOfHeader(t, records[0], models.IsTumorVar.Name)
 	assert.Equal(t, config.DNARNA.String(), records[1][analyteTypeIdx])
-	assert.Equal(t, models.ToIsTumorValue(false), records[1][isTumorIdx])
+	assert.Equal(t, config.NO.String(), records[1][isTumorIdx])
 }
 
 func indexOfHeader(t *testing.T, header []string, name string) int {

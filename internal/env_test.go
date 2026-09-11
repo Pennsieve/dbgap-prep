@@ -37,41 +37,41 @@ func TestLookupAnalyteTypeEnvVar_MissingOrInvalid(t *testing.T) {
 	})
 }
 
-func TestLookupBoolEnvVar(t *testing.T) {
+func TestLookupIsTumorEnvVar(t *testing.T) {
 	const key = "IS_TUMOR"
 
 	t.Run("unset uses default", func(t *testing.T) {
 		t.Setenv(key, "")
-		value, err := LookupBoolEnvVar(key, true)
+		value, err := LookupIsTumorEnvVar(key, config.YES)
 		require.NoError(t, err)
-		assert.True(t, value)
+		assert.Equal(t, config.YES, value)
 
-		value, err = LookupBoolEnvVar(key, false)
+		value, err = LookupIsTumorEnvVar(key, config.NO)
 		require.NoError(t, err)
-		assert.False(t, value)
+		assert.Equal(t, config.NO, value)
 	})
 
-	for _, truthy := range []string{"true", "TRUE", "1", "t"} {
-		t.Run("truthy/"+truthy, func(t *testing.T) {
-			t.Setenv(key, truthy)
-			value, err := LookupBoolEnvVar(key, false)
+	for _, yes := range []string{"yes", "YES", "Yes"} {
+		t.Run("yes/"+yes, func(t *testing.T) {
+			t.Setenv(key, yes)
+			value, err := LookupIsTumorEnvVar(key, config.NO)
 			require.NoError(t, err)
-			assert.True(t, value)
+			assert.Equal(t, config.YES, value)
 		})
 	}
 
-	for _, falsy := range []string{"false", "FALSE", "0", "f"} {
-		t.Run("falsy/"+falsy, func(t *testing.T) {
-			t.Setenv(key, falsy)
-			value, err := LookupBoolEnvVar(key, true)
+	for _, no := range []string{"no", "NO", "No"} {
+		t.Run("no/"+no, func(t *testing.T) {
+			t.Setenv(key, no)
+			value, err := LookupIsTumorEnvVar(key, config.YES)
 			require.NoError(t, err)
-			assert.False(t, value)
+			assert.Equal(t, config.NO, value)
 		})
 	}
 
 	t.Run("unparsable errors instead of using default", func(t *testing.T) {
-		t.Setenv(key, "not-a-bool")
-		_, err := LookupBoolEnvVar(key, false)
+		t.Setenv(key, "not-an-is-tumor")
+		_, err := LookupIsTumorEnvVar(key, config.NO)
 		assert.Error(t, err)
 	})
 }

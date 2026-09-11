@@ -35,7 +35,7 @@ func ConsentGroupFromString(s string) (ConsentGroup, error) {
 	case strings.ToLower(OTHER.String()):
 		return OTHER, nil
 	default:
-		return 0, fmt.Errorf("unknown consent group '%s'", s)
+		return -1, fmt.Errorf("unknown consent group '%s'", s)
 	}
 }
 
@@ -69,7 +69,36 @@ func AnalyteTypeFromString(s string) (AnalyteType, error) {
 	case strings.ToLower(DNARNA.String()):
 		return DNARNA, nil
 	default:
-		return 0, fmt.Errorf("unknown analyte type '%s'", s)
+		return -1, fmt.Errorf("unknown analyte type '%s'", s)
+	}
+}
+
+type IsTumor int
+
+const (
+	NO IsTumor = iota
+	YES
+)
+
+func (it IsTumor) String() string {
+	switch it {
+	case YES:
+		return "Yes"
+	case NO:
+		return "No"
+	default:
+		return "Unknown"
+	}
+}
+
+func IsTumorFromString(s string) (IsTumor, error) {
+	switch strings.ToLower(s) {
+	case strings.ToLower(YES.String()):
+		return YES, nil
+	case strings.ToLower(NO.String()):
+		return NO, nil
+	default:
+		return -1, fmt.Errorf("unknown IsTumor '%s'", s)
 	}
 }
 
@@ -80,5 +109,5 @@ type Config struct {
 	OutputDirectory    string
 	ConsentGroup       ConsentGroup
 	AnalyteType        AnalyteType
-	IsTumor            bool
+	IsTumor            IsTumor
 }
