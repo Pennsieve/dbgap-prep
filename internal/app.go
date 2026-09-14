@@ -7,6 +7,7 @@ import (
 
 	"github.com/pennsieve/dbgap-prep/internal/config"
 	"github.com/pennsieve/dbgap-prep/internal/datasetdescriptions"
+	"github.com/pennsieve/dbgap-prep/internal/dbgap/dataavailability"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/sampleattributes"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent"
 	scds "github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent/ds"
@@ -117,6 +118,10 @@ func (a *App) Run() error {
 	// empty columns.
 	samplesHeader = pruneHeader(samplesHeader, consentedSamples, samples.IDLabel, samples.SubjectIDLabel)
 	if err := sampleattributes.WriteFiles(a.Config.OutputDirectory, a.Config.AnalyteType, a.Config.IsTumor, datasetDescription.DOIURL, samplesHeader, consentedSamples); err != nil {
+		return err
+	}
+
+	if err := dataavailability.WriteFile(a.Config.OutputDirectory, "", datasetDescription); err != nil {
 		return err
 	}
 
