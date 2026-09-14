@@ -11,7 +11,7 @@ import (
 
 const DefaultFileNameBase = "6a_SampleAttributes_DS"
 
-func NewToRow(analyteType analytetype.Type, isTumor istumor.Value) ds.ToRowFunc[samples.Sample] {
+func NewToRow(analyteType analytetype.Type, isTumor istumor.Value, sparcDOIURL string) ds.ToRowFunc[samples.Sample] {
 	return func(variables []dd.Variable, sample samples.Sample) []string {
 		row := make([]string, 0, len(variables))
 		for _, variable := range variables {
@@ -23,6 +23,8 @@ func NewToRow(analyteType analytetype.Type, isTumor istumor.Value) ds.ToRowFunc[
 				value = analyteType.String()
 			case models.IsTumorVar.Name:
 				value = isTumor.String()
+			case models.SPARCDatasetDOIVar.Name:
+				value = sparcDOIURL
 			default:
 				value = sample.Values[variable.SourceColumnName]
 			}
@@ -32,8 +34,8 @@ func NewToRow(analyteType analytetype.Type, isTumor istumor.Value) ds.ToRowFunc[
 	}
 }
 
-func Write(writer ds.Writer, analyteType analytetype.Type, isTumor istumor.Value, variables []dd.Variable, consentedSubjectSamples []samples.Sample) error {
-	rows := ds.ToRows(variables, consentedSubjectSamples, NewToRow(analyteType, isTumor))
+func Write(writer ds.Writer, analyteType analytetype.Type, isTumor istumor.Value, sparcDOIURL string, variables []dd.Variable, consentedSubjectSamples []samples.Sample) error {
+	rows := ds.ToRows(variables, consentedSubjectSamples, NewToRow(analyteType, isTumor, sparcDOIURL))
 
 	spec := ds.Spec{Variables: variables}
 	return writer.Write(spec, rows)

@@ -46,3 +46,5 @@ var SPARCDatasetDOIVar = dd.Variable{
 	Description: "DOI of the SPARC dataset holding the open-access counterpart record for this sample",
 	Type:        dd.StringType,
 }
+
+var CanonicalVariables = []dd.Variable{*dd.SampleIDVar, BodySiteVar, AnalyteTypeVar, IsTumorVar, LateralityVar, SampleCollectionSiteVar, SPARCDatasetDOIVar}

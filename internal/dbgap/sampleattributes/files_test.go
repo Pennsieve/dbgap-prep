@@ -71,8 +71,10 @@ func TestWriteFiles(t *testing.T) {
 		{ID: "sam-2", SubjectID: "sub-2", Values: map[string]string{models.BodySiteVar.SourceColumnName: "liver", models.LateralityVar.SourceColumnName: "right"}},
 	}
 
+	sparcDOIURL := "https://doi.example.com/123/abc"
+
 	outputDirectory := t.TempDir()
-	require.NoError(t, WriteFiles(outputDirectory, analytetype.RNA, istumor.YES, samplesHeader, consentedSamples))
+	require.NoError(t, WriteFiles(outputDirectory, analytetype.RNA, istumor.YES, sparcDOIURL, samplesHeader, consentedSamples))
 
 	dsFile, err := excelize.OpenFile(outputDirectory + "/6a_SampleAttributes_DS.xlsx")
 	require.NoError(t, err)
@@ -86,9 +88,11 @@ func TestWriteFiles(t *testing.T) {
 
 	analyteTypeIdx := indexOfHeader(t, records[0], models.AnalyteTypeVar.Name)
 	isTumorIdx := indexOfHeader(t, records[0], models.IsTumorVar.Name)
+	sparcDOIURLIdx := indexOfHeader(t, records[0], models.SPARCDatasetDOIVar.Name)
 	for _, dataRow := range records[1:] {
 		assert.Equal(t, analytetype.RNA.String(), dataRow[analyteTypeIdx])
 		assert.Equal(t, istumor.YES.String(), dataRow[isTumorIdx])
+		assert.Equal(t, sparcDOIURL, dataRow[sparcDOIURLIdx])
 	}
 }
 
@@ -97,9 +101,10 @@ func TestWriteFiles_ComputedColumnsPopulatedWithoutOptionalSourceColumns(t *test
 	consentedSamples := []samples.Sample{
 		{ID: "sam-1", SubjectID: "sub-1", Values: map[string]string{}},
 	}
+	sparcDOIURL := "https://doi.example.com/123/abc"
 
 	outputDirectory := t.TempDir()
-	require.NoError(t, WriteFiles(outputDirectory, analytetype.DNARNA, istumor.NO, samplesHeader, consentedSamples))
+	require.NoError(t, WriteFiles(outputDirectory, analytetype.DNARNA, istumor.NO, sparcDOIURL, samplesHeader, consentedSamples))
 
 	dsFile, err := excelize.OpenFile(outputDirectory + "/6a_SampleAttributes_DS.xlsx")
 	require.NoError(t, err)
@@ -113,8 +118,10 @@ func TestWriteFiles_ComputedColumnsPopulatedWithoutOptionalSourceColumns(t *test
 
 	analyteTypeIdx := indexOfHeader(t, records[0], models.AnalyteTypeVar.Name)
 	isTumorIdx := indexOfHeader(t, records[0], models.IsTumorVar.Name)
+	sparcDOIURLIdx := indexOfHeader(t, records[0], models.SPARCDatasetDOIVar.Name)
 	assert.Equal(t, analytetype.DNARNA.String(), records[1][analyteTypeIdx])
 	assert.Equal(t, istumor.NO.String(), records[1][isTumorIdx])
+	assert.Equal(t, sparcDOIURL, records[1][sparcDOIURLIdx])
 }
 
 func indexOfHeader(t *testing.T, header []string, name string) int {
