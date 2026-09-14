@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -24,19 +25,34 @@ func CloseExcelFile(inputFile *excelize.File, logger *slog.Logger) {
 
 type IsHeaderRowFunc func(row []string) bool
 
+// IsBlankRow returns true if row has no cells or if every cell is empty or whitespace.
+// Excelize returns such a row for any blank row that appears before the last non-blank
+// row of a sheet.
+func IsBlankRow(row []string) bool {
+	for _, cell := range row {
+		if len(strings.TrimSpace(cell)) > 0 {
+			return false
+		}
+	}
+	return true
+}
+
 // FromRowFunc is a function that, given a header and dataRow, turn that dataRow into a T.
-type FromRowFunc[T any] func(header []string, dataRow []string) (T, error)
+// If dataRow should not be made into a T and should be skipped without error, return nil for both *T and error.
+type FromRowFunc[T any] func(header []string, dataRow []string) (*T, error)
 
 // FromSheet returns a slice of T, created from header and rows using fromRow.
 func FromSheet[T any](header []string, rows [][]string, fromRow FromRowFunc[T]) ([]T, error) {
 	items := make([]T, 0, len(rows))
 
 	for i, row := range rows {
-		sample, err := fromRow(header, row)
+		item, err := fromRow(header, row)
 		if err != nil {
 			return nil, fmt.Errorf("error converting row %d: %w", i, err)
 		}
-		items = append(items, sample)
+		if item != nil {
+			items = append(items, *item)
+		}
 
 	}
 	return items, nil

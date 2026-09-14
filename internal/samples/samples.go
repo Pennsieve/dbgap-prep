@@ -2,10 +2,11 @@ package samples
 
 import (
 	"fmt"
+	"log/slog"
+
 	"github.com/pennsieve/dbgap-prep/internal/logging"
 	"github.com/pennsieve/dbgap-prep/internal/utils"
 	"github.com/xuri/excelize/v2"
-	"log/slog"
 )
 
 var logger = logging.PackageLogger("samples")
@@ -52,13 +53,19 @@ func IsHeaderRow(row []string) bool {
 	return len(row) > 0 && row[0] == IDLabel
 }
 
-// FromRow converts the given non-empty, non-header row to a Sample
-func FromRow(header []string, row []string) (Sample, error) {
+// FromRow converts the given non-header row to a Sample.
+// Blank rows are skipped: for those, a nil Sample and a nil error are returned so that
+// the caller skips the row without failing.
+func FromRow(header []string, row []string) (*Sample, error) {
 	if IsHeaderRow(row) {
-		return Sample{}, fmt.Errorf("samples row is a header")
+		return nil, fmt.Errorf("samples row is a header")
+	}
+	if utils.IsBlankRow(row) {
+		logger.Info("skipping blank samples row")
+		return nil, nil
 	}
 	if len(row) < 2 {
-		return Sample{}, fmt.Errorf("samples row is too short to contain sample and subject ids")
+		return nil, fmt.Errorf("samples row is too short to contain sample and subject ids")
 	}
 	values := make(map[string]string, len(row)-2)
 
@@ -77,7 +84,7 @@ func FromRow(header []string, row []string) (Sample, error) {
 		}
 	}
 	logger.Info("found sample", sample.LogGroup())
-	return sample, nil
+	return &sample, nil
 }
 
 func FromFile(file *excelize.File) ([]string, []Sample, error) {

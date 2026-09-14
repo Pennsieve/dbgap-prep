@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/pennsieve/dbgap-prep/internal/config"
+	"github.com/pennsieve/dbgap-prep/internal/datasetdescriptions"
+	"github.com/pennsieve/dbgap-prep/internal/dbgap/dataavailability"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/sampleattributes"
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent"
 	scds "github.com/pennsieve/dbgap-prep/internal/dbgap/subjectconsent/ds"
@@ -31,6 +33,21 @@ func NewApp(config *config.Config) *App {
 }
 
 func (a *App) Run() error {
+	datasetDescriptionPath := filepath.Join(a.Config.InputDirectory, datasetdescriptions.FileName)
+	datasetDescriptionLogger := logger.With("file", datasetDescriptionPath)
+	datasetDescriptionFile, err := openExcelInput(datasetDescriptionPath)
+	if err != nil {
+		return err
+	}
+	defer utils.CloseExcelFile(datasetDescriptionFile, datasetDescriptionLogger)
+
+	datasetDescriptionLogger.Info("reading dataset description file")
+	datasetDescription, err := datasetdescriptions.FromFile(datasetDescriptionFile)
+	if err != nil {
+		return err
+	}
+	datasetDescriptionLogger.Info("read dataset description", datasetDescription.LogGroup())
+
 	subjectsPath := filepath.Join(a.Config.InputDirectory, subjects.FileName)
 	subjectsLogger := logger.With(slog.String("file", subjectsPath))
 
@@ -100,7 +117,11 @@ func (a *App) Run() error {
 	// prune the samples header of empty columns so our samples attributes DD file does not contain
 	// empty columns.
 	samplesHeader = pruneHeader(samplesHeader, consentedSamples, samples.IDLabel, samples.SubjectIDLabel)
-	if err := sampleattributes.WriteFiles(a.Config.OutputDirectory, samplesHeader, consentedSamples); err != nil {
+	if err := sampleattributes.WriteFiles(a.Config.OutputDirectory, a.Config.AnalyteType, a.Config.IsTumor, datasetDescription.DOIURL, samplesHeader, consentedSamples); err != nil {
+		return err
+	}
+
+	if err := dataavailability.WriteFile(a.Config.OutputDirectory, a.Config.PHSAccession, datasetDescription); err != nil {
 		return err
 	}
 

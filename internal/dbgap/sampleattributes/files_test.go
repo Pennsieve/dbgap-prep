@@ -1,15 +1,136 @@
 package sampleattributes
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
+	"github.com/pennsieve/dbgap-prep/internal/dbgap/sampleattributes/models"
+	"github.com/pennsieve/dbgap-prep/internal/enums/analytetype"
+	"github.com/pennsieve/dbgap-prep/internal/enums/istumor"
+	"github.com/pennsieve/dbgap-prep/internal/samples"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/xuri/excelize/v2"
 )
 
-func TestHeaderToAttributeLabels(t *testing.T) {
-	var samplesHeader = []string{"sample id", "subject id", "was derived from", "pool id", "sample experimental group", "sample type", "sample anatomical location", "also in dataset", "member of", "metadata only", "number of directly derived samples", "laboratory internal id", "date of derivation", "experimental log file path", "reference atlas", "pathology", "laterality", "cell type", "plane of section", "protocol title", "protocol url or doi", "RNA concentration", "RNA concentration method", "RNA purity", "RNA quality", "RNA quality method", "amputation", "body temp", "collection institution", "cross clamp (first)", "cross clamp (last)", "cross clamp time", "donor status", "fixation method", "fixation temp", "fixation time", "freeze thaw cycles", "freezing method", "freezing temp", "incision time", "ischemic time", "post-mortem interval", "protein concentration", "protein concentration method", "sample collection site", "storage temp", "time of sample collection", "nCells", "nFeature_RNA", "nCount_RNA", "nFeature_ATAC", "nCount_ATAC"}
+func namesOf(variables []dd.Variable) []string {
+	return dd.VariableNames(variables)
+}
 
-	attrLabels := HeaderToAttributeLabels(samplesHeader)
+func TestPresentVariables_AlwaysIncludesComputedVars(t *testing.T) {
+	forcedVarNames := []string{models.AnalyteTypeVar.Name, models.IsTumorVar.Name, models.SPARCDatasetDOIVar.Name}
 
-	assert.Len(t, attrLabels, len(samplesHeader)-2)
-	assert.Equal(t, samplesHeader[2:], attrLabels)
+	testCases := map[string][]string{
+		"empty header":            {},
+		"unrelated header only":   {"some other column", "another column"},
+		"missing optional source": {"sample id"},
+	}
+
+	for name, header := range testCases {
+		t.Run(name, func(t *testing.T) {
+			present := namesOf(presentVariables(header))
+			for _, forced := range forcedVarNames {
+				assert.Contains(t, present, forced, "forced variable %q must always be present", forced)
+			}
+		})
+	}
+}
+
+func TestPresentVariables_OptionalVarsFollowHeader(t *testing.T) {
+	testCases := []struct {
+		name           string
+		header         []string
+		expectVarName  string
+		expectPresence bool
+	}{
+		{"body site present, exact case", []string{models.BodySiteVar.SourceColumnName}, models.BodySiteVar.Name, true},
+		{"body site present, different case", []string{"SAMPLE ANATOMICAL LOCATION"}, models.BodySiteVar.Name, true},
+		{"body site absent", []string{"unrelated"}, models.BodySiteVar.Name, false},
+		{"laterality present", []string{models.LateralityVar.SourceColumnName}, models.LateralityVar.Name, true},
+		{"laterality absent", []string{"unrelated"}, models.LateralityVar.Name, false},
+		{"sample collection site present", []string{models.SampleCollectionSiteVar.SourceColumnName}, models.SampleCollectionSiteVar.Name, true},
+		{"sample collection site absent", []string{"unrelated"}, models.SampleCollectionSiteVar.Name, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			present := namesOf(presentVariables(tc.header))
+			if tc.expectPresence {
+				assert.Contains(t, present, tc.expectVarName)
+			} else {
+				assert.NotContains(t, present, tc.expectVarName)
+			}
+		})
+	}
+}
+
+func TestWriteFiles(t *testing.T) {
+	samplesHeader := []string{samples.IDLabel, models.BodySiteVar.SourceColumnName, models.LateralityVar.SourceColumnName}
+	consentedSamples := []samples.Sample{
+		{ID: "sam-1", SubjectID: "sub-1", Values: map[string]string{models.BodySiteVar.SourceColumnName: "brain", models.LateralityVar.SourceColumnName: "left"}},
+		{ID: "sam-2", SubjectID: "sub-2", Values: map[string]string{models.BodySiteVar.SourceColumnName: "liver", models.LateralityVar.SourceColumnName: "right"}},
+	}
+
+	sparcDOIURL := "https://doi.example.com/123/abc"
+
+	outputDirectory := t.TempDir()
+	require.NoError(t, WriteFiles(outputDirectory, analytetype.RNA, istumor.YES, sparcDOIURL, samplesHeader, consentedSamples))
+
+	dsFile, err := excelize.OpenFile(outputDirectory + "/6a_SampleAttributes_DS.xlsx")
+	require.NoError(t, err)
+	defer func() {
+		assert.NoError(t, dsFile.Close())
+	}()
+
+	records, err := dsFile.GetRows("Sheet1")
+	require.NoError(t, err)
+	require.Len(t, records, len(consentedSamples)+1)
+
+	analyteTypeIdx := indexOfHeader(t, records[0], models.AnalyteTypeVar.Name)
+	isTumorIdx := indexOfHeader(t, records[0], models.IsTumorVar.Name)
+	sparcDOIURLIdx := indexOfHeader(t, records[0], models.SPARCDatasetDOIVar.Name)
+	for _, dataRow := range records[1:] {
+		assert.Equal(t, analytetype.RNA.String(), dataRow[analyteTypeIdx])
+		assert.Equal(t, istumor.YES.String(), dataRow[isTumorIdx])
+		assert.Equal(t, sparcDOIURL, dataRow[sparcDOIURLIdx])
+	}
+}
+
+func TestWriteFiles_ComputedColumnsPopulatedWithoutOptionalSourceColumns(t *testing.T) {
+	samplesHeader := []string{samples.IDLabel}
+	consentedSamples := []samples.Sample{
+		{ID: "sam-1", SubjectID: "sub-1", Values: map[string]string{}},
+	}
+	sparcDOIURL := "https://doi.example.com/123/abc"
+
+	outputDirectory := t.TempDir()
+	require.NoError(t, WriteFiles(outputDirectory, analytetype.DNARNA, istumor.NO, sparcDOIURL, samplesHeader, consentedSamples))
+
+	dsFile, err := excelize.OpenFile(outputDirectory + "/6a_SampleAttributes_DS.xlsx")
+	require.NoError(t, err)
+	defer func() {
+		assert.NoError(t, dsFile.Close())
+	}()
+
+	records, err := dsFile.GetRows("Sheet1")
+	require.NoError(t, err)
+	require.Len(t, records, len(consentedSamples)+1)
+
+	analyteTypeIdx := indexOfHeader(t, records[0], models.AnalyteTypeVar.Name)
+	isTumorIdx := indexOfHeader(t, records[0], models.IsTumorVar.Name)
+	sparcDOIURLIdx := indexOfHeader(t, records[0], models.SPARCDatasetDOIVar.Name)
+	assert.Equal(t, analytetype.DNARNA.String(), records[1][analyteTypeIdx])
+	assert.Equal(t, istumor.NO.String(), records[1][isTumorIdx])
+	assert.Equal(t, sparcDOIURL, records[1][sparcDOIURLIdx])
+}
+
+func indexOfHeader(t *testing.T, header []string, name string) int {
+	t.Helper()
+	for i, h := range header {
+		if h == name {
+			return i
+		}
+	}
+	require.Failf(t, "variable not found in header", "%q not found in %v", name, header)
+	return -1
 }

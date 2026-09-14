@@ -1,9 +1,10 @@
 package models
 
 import (
+	"strings"
+
 	"github.com/pennsieve/dbgap-prep/internal/dbgap/dd"
 	"github.com/pennsieve/dbgap-prep/internal/subjects"
-	"strings"
 )
 
 var MaleSex = dd.NewEncodedValue("1", "Male")
@@ -11,10 +12,11 @@ var FemaleSex = dd.NewEncodedValue("2", "Female")
 var UnknownSex = dd.NewEncodedValue("UNK", "Unknown")
 
 var SexVar = &dd.Variable{
-	Name:        "SEX",
-	Description: "Biological Sex",
-	Type:        dd.EncodedValueType,
-	Values:      []dd.EncodedValue{MaleSex, FemaleSex, UnknownSex},
+	Name:             "SEX",
+	Description:      "Biological sex",
+	Type:             dd.EncodedValueType,
+	Values:           []dd.EncodedValue{MaleSex, FemaleSex, UnknownSex},
+	SourceColumnName: subjects.SexLabel,
 }
 
 func SexFromSubject(subject subjects.Subject) string {

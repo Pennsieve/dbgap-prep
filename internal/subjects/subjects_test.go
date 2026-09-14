@@ -20,7 +20,6 @@ func TestFromFile(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, IDLabel, header[IDIndex])
-	assert.Equal(t, SexLabel, header[SexIndex])
 
 	require.Len(t, subs, 5)
 
@@ -44,4 +43,49 @@ func TestFromFile(t *testing.T) {
 	assert.Equal(t, "", subs[4].Sex)
 	assert.Equal(t, "dbgap#a1b2", subs[4].SourceSubjectIDdbGap)
 
+}
+
+func TestFromRow(t *testing.T) {
+	header := []string{IDLabel, SexLabel, SourceSubjectIDdbGapColumn, "age"}
+
+	// An empty expectedID means the row is expected to be skipped.
+	for name, testCase := range map[string]struct {
+		row        []string
+		expectedID string
+	}{
+		"subject row":            {row: []string{"sub-1", "1", "dbgap#1", "42"}, expectedID: "sub-1"},
+		"uppercase prefix":       {row: []string{"SUB-1", "1", "dbgap#1", "42"}, expectedID: "SUB-1"},
+		"untrimmed prefix":       {row: []string{" sub-1", "1", "dbgap#1", "42"}, expectedID: " sub-1"},
+		"non-subject row":        {row: []string{"1234", "1", "dbgap#1", "42"}},
+		"empty id":               {row: []string{"", "", "", ""}},
+		"blank id":               {row: []string{"   ", "", "", ""}},
+		"id shorter than prefix": {row: []string{"sub", "", "", ""}},
+		"blank row":              {row: []string{}},
+		"blank row with cells":   {row: []string{"", " "}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			subject, err := FromRow(header, testCase.row)
+			require.NoError(t, err)
+
+			if len(testCase.expectedID) == 0 {
+				assert.Nil(t, subject)
+				return
+			}
+
+			require.NotNil(t, subject)
+			assert.Equal(t, testCase.expectedID, subject.ID)
+			assert.Equal(t, "1", subject.Sex)
+			assert.Equal(t, "dbgap#1", subject.SourceSubjectIDdbGap)
+			assert.Equal(t, map[string]string{"age": "42"}, subject.Values)
+		})
+	}
+}
+
+func TestFromRow_HeaderRowIsError(t *testing.T) {
+	header := []string{IDLabel, SexLabel}
+
+	subject, err := FromRow(header, []string{IDLabel, SexLabel})
+
+	assert.Error(t, err)
+	assert.Nil(t, subject)
 }

@@ -5,7 +5,7 @@ A Pennsieve analysis workflow application to create dbGaP submission files.
 ## workflow
 
 This application should be run in a workflow where it is preceded by a Data Source node to allow the user to choose the
-dataset's `subjects.xlsx` and `samples.xlsx` as input.
+dataset's `dataset_description.xlsx`, `subjects.xlsx`, and `samples.xlsx` as input.
 This application should be followed in the workflow by a Data Target node with target type Pennsieve Dataset so that the
 dbGaP submission files created by this application are uploaded back into the dataset being prepared for submission.
 
@@ -17,5 +17,5 @@ here: https://www.ncbi.nlm.nih.gov/gap/docs/submissionguide.
 If you have an example `subjects.xlsx` and `samples.xlsx` files you'd like to test with, run
 
 ```aiignore
- % go run cmd/local/main.go -i <input directory containing subjects.xlsx and samples.xlsx> -o <output directory>
+ % go run cmd/local/main.go -i <input directory containing dataset_description.xlsx, subjects.xlsx, and samples.xlsx> -o <output directory> -c <consent group, GRU or HMB> -a <analyte type, DNA, RNA, or DNA/RNA>
 ```

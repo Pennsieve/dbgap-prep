@@ -1,12 +1,12 @@
 package samples
 
 import (
-	"fmt"
+	"path/filepath"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/xuri/excelize/v2"
-	"path/filepath"
-	"testing"
 )
 
 func TestFromFile(t *testing.T) {
@@ -18,8 +18,6 @@ func TestFromFile(t *testing.T) {
 	}()
 	samplesHeader, samps, err := FromFile(file)
 	require.NoError(t, err)
-
-	fmt.Println(samplesHeader)
 
 	assert.Equal(t, IDLabel, samplesHeader[IDIndex])
 	assert.Equal(t, SubjectIDLabel, samplesHeader[SubjectIDIndex])
@@ -37,4 +35,47 @@ func TestFromFile(t *testing.T) {
 	expectedValue := "1712.715569"
 	assert.Equal(t, expectedValue, samps[10].Values[expectedLabel])
 
+}
+
+func TestFromRow(t *testing.T) {
+	header := []string{IDLabel, SubjectIDLabel, "nCells"}
+
+	sample, err := FromRow(header, []string{"sam-1", "sub-1", "42"})
+	require.NoError(t, err)
+
+	require.NotNil(t, sample)
+	assert.Equal(t, "sam-1", sample.ID)
+	assert.Equal(t, "sub-1", sample.SubjectID)
+	assert.Equal(t, map[string]string{"nCells": "42"}, sample.Values)
+}
+
+func TestFromRow_BlankRowsAreSkipped(t *testing.T) {
+	header := []string{IDLabel, SubjectIDLabel, "nCells"}
+
+	for name, row := range map[string][]string{
+		"no cells":    {},
+		"empty cells": {"", "", ""},
+		"blank cells": {" ", "", "\t"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			sample, err := FromRow(header, row)
+			require.NoError(t, err)
+			assert.Nil(t, sample)
+		})
+	}
+}
+
+func TestFromRow_Errors(t *testing.T) {
+	header := []string{IDLabel, SubjectIDLabel, "nCells"}
+
+	for name, row := range map[string][]string{
+		"header row":         {IDLabel, SubjectIDLabel, "nCells"},
+		"no subject id cell": {"sam-1"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			sample, err := FromRow(header, row)
+			assert.Error(t, err)
+			assert.Nil(t, sample)
+		})
+	}
 }

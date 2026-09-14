@@ -12,18 +12,27 @@ runtime:
 parameters:
   - name: CONSENT_GROUP
     type: string
-    description: Sets the 2b CONSENT text
+    required: true
+    description: Sets the 2b CONSENT text. 'Other' will have to be replaced manually before submission.
     validValues:
       - GRU
       - HMB
+      - Other
   - name: ANALYTE_TYPE
     type: string
+    required: true
     description: Applied to every 6a row
     validValues:
       - DNA
       - RNA
       - DNA/RNA
   - name: IS_TUMOR
-    type: boolean
-    defaultValue: 'false'
-    required: true
+    type: string
+    description: The tumor status of the samples. For non-cancer studies, the values of IS_TUMOR should be No.
+    defaultValue: 'No'
+    validValues:
+      - 'Yes'
+      - 'No'
+  - name: PHS_ACCESSION
+    type: string
+    description: dbGaP PHS Accession. If not provided, Data Availability and Repository Split file will contain placeholder.
