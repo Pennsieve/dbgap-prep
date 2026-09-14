@@ -121,7 +121,7 @@ func (a *App) Run() error {
 		return err
 	}
 
-	if err := dataavailability.WriteFile(a.Config.OutputDirectory, "", datasetDescription); err != nil {
+	if err := dataavailability.WriteFile(a.Config.OutputDirectory, a.Config.PHSAccession, datasetDescription); err != nil {
 		return err
 	}
 

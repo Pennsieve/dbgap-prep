@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	app "github.com/pennsieve/dbgap-prep/internal"
 	"github.com/pennsieve/dbgap-prep/internal/config"
@@ -23,6 +24,7 @@ type Event struct {
 	ConsentGroup       string `json:"CONSENT_GROUP"`
 	AnalyteType        string `json:"ANALYTE_TYPE"`
 	IsTumor            string `json:"IS_TUMOR"`
+	PHSAccession       string `json:"PHS_ACCESSION"`
 }
 
 func Handler(_ context.Context, event Event) error {
@@ -34,6 +36,7 @@ func Handler(_ context.Context, event Event) error {
 		slog.String("consentGroup", event.ConsentGroup),
 		slog.String("analyteType", event.AnalyteType),
 		slog.String("isTumor", event.IsTumor),
+		slog.String("phsAccession", event.PHSAccession),
 	)
 
 	cfg, err := configFromEvent(event)
@@ -59,9 +62,12 @@ func configFromEvent(event Event) (*config.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	isTumor, err := istumor.FromString(event.IsTumor)
-	if err != nil {
-		return nil, err
+	isTumor := istumor.NO
+	if isTumorString := strings.TrimSpace(event.IsTumor); len(isTumorString) > 0 {
+		isTumor, err = istumor.FromString(isTumorString)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &config.Config{
 		IntegrationID:      event.IntegrationID,
@@ -71,5 +77,6 @@ func configFromEvent(event Event) (*config.Config, error) {
 		ConsentGroup:       consentGroup,
 		AnalyteType:        analyteType,
 		IsTumor:            isTumor,
+		PHSAccession:       event.PHSAccession,
 	}, nil
 }

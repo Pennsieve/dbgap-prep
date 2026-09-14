@@ -2,12 +2,16 @@ package dataavailability
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/pennsieve/dbgap-prep/internal/datasetdescriptions"
+	"github.com/pennsieve/dbgap-prep/internal/logging"
 )
+
+var logger = logging.PackageLogger("dataavailability")
 
 const DefaultFileNameBase = "Data_Availability_and_Repository_Split.txt"
 
@@ -23,15 +27,10 @@ To locate the processed data and full metadata for a given sample, see the SPARC
 func WriteFile(outputDirectory string, phsAccession string, description datasetdescriptions.DatasetDescription) error {
 	path := filepath.Join(outputDirectory, DefaultFileNameBase)
 	var replacements []string
-	if phsAccession = strings.TrimSpace(phsAccession); len(phsAccession) > 0 {
-		replacements = append(replacements, "[PHS_ACCESSION]", phsAccession)
-	}
-	if title := strings.TrimSpace(description.Title); len(title) > 0 {
-		replacements = append(replacements, "[STUDY_TITLE]", title)
-	}
-	if doiURL := strings.TrimSpace(description.DOIURL); len(doiURL) > 0 {
-		replacements = append(replacements, "[SPARC_DATASET_DOI_URL]", doiURL)
-	}
+
+	replacements = appendReplacement(replacements, "[PHS_ACCESSION]", phsAccession)
+	replacements = appendReplacement(replacements, "[STUDY_TITLE]", description.Title)
+	replacements = appendReplacement(replacements, "[SPARC_DATASET_DOI_URL]", description.DOIURL)
 
 	outputFile := strings.NewReplacer(replacements...).Replace(template)
 
@@ -40,6 +39,18 @@ func WriteFile(outputDirectory string, phsAccession string, description datasetd
 	if err != nil {
 		return fmt.Errorf("error writing Data Availability and Repository Split file %s: %w", path, err)
 	}
-
+	logger.Info("wrote Data Availability and Repository Split file", slog.String("file", path))
 	return nil
+}
+
+func appendReplacement(replacements []string, placeholder string, replacement string) []string {
+	if trimmed := strings.TrimSpace(replacement); len(trimmed) == 0 {
+		logger.Warn("no valid replacement provided; Data Availability and Repository Split will contain placeholder",
+			slog.String("placeholder", placeholder),
+			slog.String("rawReplacement", replacement),
+		)
+	} else {
+		replacements = append(replacements, placeholder, trimmed)
+	}
+	return replacements
 }

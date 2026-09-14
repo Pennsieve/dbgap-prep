@@ -14,4 +14,5 @@ type Config struct {
 	ConsentGroup       consentgroup.Group
 	AnalyteType        analytetype.Type
 	IsTumor            istumor.Value
+	PHSAccession       string
 }

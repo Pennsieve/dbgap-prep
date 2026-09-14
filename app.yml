@@ -12,6 +12,7 @@ runtime:
 parameters:
   - name: CONSENT_GROUP
     type: string
+    required: true
     description: Sets the 2b CONSENT text. 'Other' will have to be replaced manually before submission.
     validValues:
       - GRU
@@ -19,6 +20,7 @@ parameters:
       - Other
   - name: ANALYTE_TYPE
     type: string
+    required: true
     description: Applied to every 6a row
     validValues:
       - DNA
@@ -31,4 +33,6 @@ parameters:
     validValues:
       - 'Yes'
       - 'No'
-    required: true
+  - name: PHS_ACCESSION
+    type: string
+    description: dbGaP PHS Accession. If not provided, Data Availability and Repository Split file will contain placeholder.

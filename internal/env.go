@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 
 	"github.com/pennsieve/dbgap-prep/internal/config"
 	"github.com/pennsieve/dbgap-prep/internal/enums/analytetype"
@@ -12,12 +13,13 @@ import (
 )
 
 const IntegrationIDKey = "INTEGRATION_ID"
-const WorkflowInstanceID = "WORKFLOW_INSTANCE_ID"
+const WorkflowInstanceIDKey = "WORKFLOW_INSTANCE_ID"
 const InputDirectoryKey = "INPUT_DIR"
 const OutputDirectoryKey = "OUTPUT_DIR"
 const ConsentGroupKey = "CONSENT_GROUP"
 const AnalyteTypeKey = "ANALYTE_TYPE"
 const IsTumorKey = "IS_TUMOR"
+const PHSAccessionKey = "PHS_ACCESSION"
 
 func ConfigFromEnv() (*config.Config, error) {
 	var cfg config.Config
@@ -27,7 +29,7 @@ func ConfigFromEnv() (*config.Config, error) {
 		return nil, err
 	}
 	// Not clear if this will be present, so not required.
-	cfg.WorkflowInstanceID = os.Getenv(WorkflowInstanceID)
+	cfg.WorkflowInstanceID = os.Getenv(WorkflowInstanceIDKey)
 	cfg.InputDirectory, err = LookupRequiredEnvVar(InputDirectoryKey)
 	if err != nil {
 		return nil, err
@@ -44,7 +46,11 @@ func ConfigFromEnv() (*config.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	cfg.IsTumor, err = LookupIsTumorEnvVar(IsTumorKey, istumor.NO)
+	cfg.IsTumor, err = LookupIsTumorEnvVar(istumor.NO)
+	if err != nil {
+		return nil, err
+	}
+	cfg.PHSAccession = os.Getenv(PHSAccessionKey)
 	return &cfg, nil
 }
 
@@ -72,11 +78,11 @@ func LookupAnalyteTypeEnvVar() (analytetype.Type, error) {
 	return analytetype.FromString(strValue)
 }
 
-func LookupIsTumorEnvVar(key string, defaultValue istumor.Value) (istumor.Value, error) {
-	value := os.Getenv(key)
+func LookupIsTumorEnvVar(defaultValue istumor.Value) (istumor.Value, error) {
+	value := strings.TrimSpace(os.Getenv(IsTumorKey))
 	if len(value) == 0 {
 		logger.Info("env var not set; using default",
-			slog.String("key", key),
+			slog.String("key", IsTumorKey),
 			slog.String("default", defaultValue.String()),
 		)
 		return defaultValue, nil

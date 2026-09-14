@@ -21,13 +21,14 @@ var outputDirectory string
 var consentGroup string
 var analyteType string
 var isTumor string
+var phsAccession string
 
 func init() {
 	inputUsage := "input directory containing dataset_description.xlsx, subjects.xlsx, and samples.xlsx"
 	flag.StringVar(&inputDirectory, "input-directory", "", inputUsage)
 	flag.StringVar(&inputDirectory, "i", "", inputUsage+" (shorthand)")
 
-	outputUsage := "output director where dbGaP files will be written"
+	outputUsage := "output directory where dbGaP files will be written"
 	flag.StringVar(&outputDirectory, "output-directory", "", outputUsage)
 	flag.StringVar(&outputDirectory, "o", "", outputUsage+" (shorthand)")
 
@@ -42,6 +43,10 @@ func init() {
 	isTumorUsage := fmt.Sprintf("tumor status of the samples; one of %s or %s", istumor.YES, istumor.NO)
 	flag.StringVar(&isTumor, "tumor", istumor.NO.String(), isTumorUsage)
 	flag.StringVar(&isTumor, "t", istumor.NO.String(), isTumorUsage+" (shorthand)")
+
+	phsAccessionUsage := "PHS Accession value; optional"
+	flag.StringVar(&phsAccession, "phs-accession", "", phsAccessionUsage)
+	flag.StringVar(&phsAccession, "p", "", phsAccessionUsage+" (shorthand)")
 }
 
 func main() {
@@ -93,6 +98,7 @@ func main() {
 		ConsentGroup:       cg,
 		AnalyteType:        at,
 		IsTumor:            it,
+		PHSAccession:       phsAccession,
 	}
 
 	dbgap := app.NewApp(cfg)
@@ -104,6 +110,7 @@ func main() {
 		slog.String("consentGroup", dbgap.Config.ConsentGroup.String()),
 		slog.String("analyteType", dbgap.Config.AnalyteType.String()),
 		slog.String("isTumor", dbgap.Config.IsTumor.String()),
+		slog.String("phsAccession", dbgap.Config.PHSAccession),
 	)
 
 	if err := dbgap.Run(); err != nil {
