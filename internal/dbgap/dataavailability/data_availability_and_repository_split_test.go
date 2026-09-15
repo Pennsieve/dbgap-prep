@@ -47,7 +47,7 @@ func TestWriteFile_Empty(t *testing.T) {
 
 			require.NoError(t, WriteFile(outputDir, testCase.phsAccession, testCase.description))
 
-			assert.Equal(t, template, readOutputFile(t, outputDir))
+			assert.Equal(t, windowsFriendlyLineEndings(template), readOutputFile(t, outputDir))
 		})
 	}
 }

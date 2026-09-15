@@ -35,4 +35,5 @@ parameters:
       - 'No'
   - name: PHS_ACCESSION
     type: string
+    required: false
     description: dbGaP PHS Accession. If not provided, Data Availability and Repository Split file will contain placeholder.
