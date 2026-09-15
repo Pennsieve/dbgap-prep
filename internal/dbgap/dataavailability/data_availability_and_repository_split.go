@@ -33,6 +33,8 @@ func WriteFile(outputDirectory string, phsAccession string, description datasetd
 	replacements = appendReplacement(replacements, "[SPARC_DATASET_DOI_URL]", description.DOIURL)
 
 	outputFile := strings.NewReplacer(replacements...).Replace(template)
+	// make the text file Windows friendly just in case.
+	outputFile = windowsFriendlyLineEndings(outputFile)
 
 	err := os.WriteFile(path, []byte(outputFile), 0644)
 
@@ -53,4 +55,11 @@ func appendReplacement(replacements []string, placeholder string, replacement st
 		replacements = append(replacements, placeholder, trimmed)
 	}
 	return replacements
+}
+
+// windowsFriendlyLineEndings simply replaces all '\n's with '\r\n' in input and returns the result.
+// It makes no effort to check if input already contains '\r\n'
+// sequences, so it should only be used on strings that are '\n'-only.
+func windowsFriendlyLineEndings(input string) string {
+	return strings.ReplaceAll(input, "\n", "\r\n")
 }
