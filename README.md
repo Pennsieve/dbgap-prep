@@ -14,7 +14,7 @@ here: https://www.ncbi.nlm.nih.gov/gap/docs/submissionguide.
 
 ## running locally
 
-If you have an example `subjects.xlsx` and `samples.xlsx` files you'd like to test with, run
+If you have example input files you'd like to test with, run
 
 ```aiignore
  % go run cmd/local/main.go -i <input directory containing dataset_description.xlsx, subjects.xlsx, and samples.xlsx> -o <output directory> -c <consent group, GRU or HMB> -a <analyte type, DNA, RNA, or DNA/RNA>
