@@ -1,6 +1,6 @@
 module github.com/pennsieve/dbgap-prep
 
-go 1.26.1
+go 1.27
 
 require (
 	github.com/aws/aws-lambda-go v1.54.0

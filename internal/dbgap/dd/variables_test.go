@@ -57,7 +57,7 @@ func TestVariable_ToDDRow_NotEncodedValues(t *testing.T) {
 
 func TestVariableNames(t *testing.T) {
 	var variables []Variable
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		variables = append(variables, Variable{
 			Name:        uuid.NewString(),
 			Description: uuid.NewString(),

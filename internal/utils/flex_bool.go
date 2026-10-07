@@ -24,8 +24,7 @@ func (b *FlexBool) UnmarshalJSON(data []byte) error {
 	// A type mismatch is the expected "not a JSON bool" case — fall through and
 	// try the stringified form. Anything else (e.g. a syntax error from a direct
 	// call with malformed bytes) is genuinely unexpected, so surface it.
-	var typeErr *json.UnmarshalTypeError
-	if !errors.As(err, &typeErr) {
+	if _, ok := errors.AsType[*json.UnmarshalTypeError](err); !ok {
 		return fmt.Errorf("FlexBool: unexpected error decoding bool: %w", err)
 	}
 
