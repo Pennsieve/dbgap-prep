@@ -23,14 +23,27 @@ func CloseExcelFile(inputFile *excelize.File, logger *slog.Logger) {
 
 // Reading
 
-type IsHeaderRowFunc func(row []string) bool
+type HeaderLabels interface {
+	Labels() []string
+}
+
+// ParseHeaderFunc will be called for the first row in each sheet. It should:
+// return (zero, false, nil) if row is not a header
+// return (h, true, nil) if row is a valid header
+// return (zero, true, err) if row is a malformed header
+type ParseHeaderFunc[H HeaderLabels] func(row []string) (H, bool, error)
+
+// IsBlankCell returns true if cell is empty or whitespace.
+func IsBlankCell(cell string) bool {
+	return len(strings.TrimSpace(cell)) == 0
+}
 
 // IsBlankRow returns true if row has no cells or if every cell is empty or whitespace.
 // Excelize returns such a row for any blank row that appears before the last non-blank
 // row of a sheet.
 func IsBlankRow(row []string) bool {
 	for _, cell := range row {
-		if len(strings.TrimSpace(cell)) > 0 {
+		if !IsBlankCell(cell) {
 			return false
 		}
 	}
@@ -39,10 +52,10 @@ func IsBlankRow(row []string) bool {
 
 // FromRowFunc is a function that, given a header and dataRow, turn that dataRow into a T.
 // If dataRow should not be made into a T and should be skipped without error, return nil for both *T and error.
-type FromRowFunc[T any] func(header []string, dataRow []string) (*T, error)
+type FromRowFunc[H HeaderLabels, T any] func(header H, dataRow []string) (*T, error)
 
 // FromSheet returns a slice of T, created from header and rows using fromRow.
-func FromSheet[T any](header []string, rows [][]string, fromRow FromRowFunc[T]) ([]T, error) {
+func FromSheet[H HeaderLabels, T any](header H, rows [][]string, fromRow FromRowFunc[H, T]) ([]T, error) {
 	items := make([]T, 0, len(rows))
 
 	for i, row := range rows {
@@ -58,11 +71,12 @@ func FromSheet[T any](header []string, rows [][]string, fromRow FromRowFunc[T]) 
 	return items, nil
 }
 
-// FromFile returns a slice of T, using isHeaderRow to determine the header row, and fromRow to turn non-header rows into Ts.
+// FromFile returns a slice of T, using parseHeaderRow to determine the header row, and fromRow to turn non-header rows into Ts.
 // The first returned argument are the header labels.
-func FromFile[T any](file *excelize.File, isHeaderRow IsHeaderRowFunc, fromRow FromRowFunc[T]) ([]string, []T, error) {
+func FromFile[H HeaderLabels, T any](file *excelize.File, parseHeaderRow ParseHeaderFunc[H], fromRow FromRowFunc[H, T]) ([]string, []T, error) {
 	var allItems []T
-	var header []string
+	var header H
+	haveHeader := false
 
 	for _, sheetName := range file.GetSheetList() {
 		rows, err := file.GetRows(sheetName)
@@ -72,11 +86,17 @@ func FromFile[T any](file *excelize.File, isHeaderRow IsHeaderRowFunc, fromRow F
 
 		if len(rows) > 0 {
 			dataRows := rows
-			maybeHeader := rows[0]
-			if isHeaderRow(maybeHeader) {
+			firstRow := rows[0]
+			maybeHeader, isHeader, err := parseHeaderRow(firstRow)
+			if err != nil {
+				return nil, nil, fmt.Errorf("error parsing header row for sheet %s: %w", sheetName, err)
+			}
+
+			if isHeader {
+				haveHeader = true
 				header = maybeHeader
 				dataRows = rows[1:]
-			} else if header == nil {
+			} else if !haveHeader {
 				// First row in sheet is not a header, and there is no header from
 				// previous sheets, so return error
 				return nil, nil, fmt.Errorf("no header found for sheet %s", sheetName)
@@ -89,7 +109,7 @@ func FromFile[T any](file *excelize.File, isHeaderRow IsHeaderRowFunc, fromRow F
 		}
 	}
 
-	return header, allItems, nil
+	return header.Labels(), allItems, nil
 }
 
 // Writing

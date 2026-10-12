@@ -105,6 +105,10 @@ func (a *App) Run() error {
 		return err
 	}
 
+	if err := dataavailability.WriteFile(a.Config.OutputDirectory, a.Config.PHSAccession, datasetDescription); err != nil {
+		return err
+	}
+
 	if len(consentedSamples) == 0 {
 		samplesLogger.Info("no consented samples found")
 		return nil
@@ -118,10 +122,6 @@ func (a *App) Run() error {
 	// empty columns.
 	samplesHeader = pruneHeader(samplesHeader, consentedSamples, samples.IDLabel, samples.SubjectIDLabel)
 	if err := sampleattributes.WriteFiles(a.Config.OutputDirectory, a.Config.AnalyteType, a.Config.IsTumor, datasetDescription.DOIURL, samplesHeader, consentedSamples); err != nil {
-		return err
-	}
-
-	if err := dataavailability.WriteFile(a.Config.OutputDirectory, a.Config.PHSAccession, datasetDescription); err != nil {
 		return err
 	}
 

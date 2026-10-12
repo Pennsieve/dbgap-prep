@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/xuri/excelize/v2"
 )
 
 type testItem struct {
@@ -14,7 +15,7 @@ type testItem struct {
 
 // fromNamedRow turns a row into a testItem using the first column. Rows with an empty
 // first column are skipped, and rows with no columns at all are an error.
-func fromNamedRow(_ []string, dataRow []string) (*testItem, error) {
+func fromNamedRow(_ testHeaderLabels, dataRow []string) (*testItem, error) {
 	if len(dataRow) == 0 {
 		return nil, fmt.Errorf("row is empty")
 	}
@@ -43,8 +44,12 @@ func TestIsBlankRow(t *testing.T) {
 	}
 }
 
+type testHeaderLabels []string
+
+func (h testHeaderLabels) Labels() []string { return h }
+
 func TestFromSheet(t *testing.T) {
-	header := []string{"name"}
+	header := testHeaderLabels([]string{"name"})
 
 	for name, testCase := range map[string]struct {
 		rows     [][]string
@@ -76,7 +81,7 @@ func TestFromSheet(t *testing.T) {
 }
 
 func TestFromSheet_Error(t *testing.T) {
-	header := []string{"name"}
+	header := testHeaderLabels([]string{"name"})
 	rows := [][]string{{"one"}, {}}
 
 	actual, err := FromSheet(header, rows, fromNamedRow)
@@ -85,4 +90,98 @@ func TestFromSheet_Error(t *testing.T) {
 	// the index of the failing row should be part of the error
 	assert.Contains(t, err.Error(), "row 1")
 	assert.Nil(t, actual)
+}
+
+// parseNamedHeader treats a row whose first cell is "name" as a header, and a row whose
+// first cell is "bad name" as a malformed header.
+func parseNamedHeader(row []string) (testHeaderLabels, bool, error) {
+	if len(row) == 0 {
+		return nil, false, nil
+	}
+	switch row[0] {
+	case "name":
+		return row, true, nil
+	case "bad name":
+		return nil, true, fmt.Errorf("malformed header")
+	default:
+		return nil, false, nil
+	}
+}
+
+// newTestFile returns an in-memory Excel file with one sheet per element of sheets, in order.
+func newTestFile(t *testing.T, sheets ...[][]string) *excelize.File {
+	t.Helper()
+	file := excelize.NewFile()
+	t.Cleanup(func() {
+		assert.NoError(t, file.Close())
+	})
+	for i, rows := range sheets {
+		sheet := fmt.Sprintf("Sheet%d", i+1)
+		if i > 0 {
+			_, err := file.NewSheet(sheet)
+			require.NoError(t, err)
+		}
+		for r, row := range rows {
+			cell, err := excelize.CoordinatesToCellName(1, r+1)
+			require.NoError(t, err)
+			require.NoError(t, file.SetSheetRow(sheet, cell, &row))
+		}
+	}
+	return file
+}
+
+func TestFromFile(t *testing.T) {
+	for name, testCase := range map[string]struct {
+		sheets         [][][]string
+		expectedHeader []string
+		expected       []testItem
+	}{
+		"one sheet": {
+			sheets:         [][][]string{{{"name", "extra"}, {"one"}, {"two"}}},
+			expectedHeader: []string{"name", "extra"},
+			expected:       []testItem{{Name: "one"}, {Name: "two"}},
+		},
+		"later sheet without header uses previous header": {
+			sheets:         [][][]string{{{"name"}, {"one"}}, {{"two"}}},
+			expectedHeader: []string{"name"},
+			expected:       []testItem{{Name: "one"}, {Name: "two"}},
+		},
+		"later sheet with its own header": {
+			sheets:         [][][]string{{{"name"}, {"one"}}, {{"name", "extra"}, {"two"}}},
+			expectedHeader: []string{"name", "extra"},
+			expected:       []testItem{{Name: "one"}, {Name: "two"}},
+		},
+		"empty sheet is ignored": {
+			sheets:         [][][]string{{}, {{"name"}, {"one"}}},
+			expectedHeader: []string{"name"},
+			expected:       []testItem{{Name: "one"}},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			file := newTestFile(t, testCase.sheets...)
+
+			header, actual, err := FromFile(file, parseNamedHeader, fromNamedRow)
+			require.NoError(t, err)
+			assert.Equal(t, testCase.expectedHeader, header)
+			assert.Equal(t, testCase.expected, actual)
+		})
+	}
+}
+
+func TestFromFile_Errors(t *testing.T) {
+	for name, sheets := range map[string][][][]string{
+		"no header":                {{{"one"}}},
+		"malformed header":         {{{"bad name"}, {"one"}}},
+		"malformed later header":   {{{"name"}, {"one"}}, {{"bad name"}, {"two"}}},
+		"row error after a header": {{{"name"}, {"one"}, {}, {"two"}}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			file := newTestFile(t, sheets...)
+
+			header, actual, err := FromFile(file, parseNamedHeader, fromNamedRow)
+			assert.Error(t, err)
+			assert.Nil(t, header)
+			assert.Nil(t, actual)
+		})
+	}
 }

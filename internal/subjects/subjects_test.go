@@ -46,7 +46,11 @@ func TestFromFile(t *testing.T) {
 }
 
 func TestFromRow(t *testing.T) {
-	header := []string{IDLabel, SexLabel, SourceSubjectIDdbGapColumn, "age"}
+	header := Header{
+		labels:                    []string{IDLabel, SexLabel, SourceSubjectIDdbGapLabel, "age"},
+		sexIndex:                  1,
+		sourceSubjectIDdbGapIndex: 2,
+	}
 
 	// An empty expectedID means the row is expected to be skipped.
 	for name, testCase := range map[string]struct {
@@ -81,11 +85,71 @@ func TestFromRow(t *testing.T) {
 	}
 }
 
-func TestFromRow_HeaderRowIsError(t *testing.T) {
-	header := []string{IDLabel, SexLabel}
+func TestFromRow_NoSexOrSourceSubjectIDColumns(t *testing.T) {
+	header := Header{
+		labels:                    []string{IDLabel, "age"},
+		sexIndex:                  -1,
+		sourceSubjectIDdbGapIndex: -1,
+	}
 
-	subject, err := FromRow(header, []string{IDLabel, SexLabel})
+	subject, err := FromRow(header, []string{"sub-1", "42"})
+	require.NoError(t, err)
 
-	assert.Error(t, err)
-	assert.Nil(t, subject)
+	require.NotNil(t, subject)
+	assert.Equal(t, "sub-1", subject.ID)
+	assert.Empty(t, subject.Sex)
+	assert.Empty(t, subject.SourceSubjectIDdbGap)
+	assert.Equal(t, map[string]string{"age": "42"}, subject.Values)
+}
+
+func TestParseHeaderRow(t *testing.T) {
+	for name, testCase := range map[string]struct {
+		row                               []string
+		expectedLabels                    []string
+		expectedSexIndex                  int
+		expectedSourceSubjectIDdbGapIndex int
+	}{
+		"canonical labels": {
+			row:                               []string{IDLabel, SexLabel, SourceSubjectIDdbGapLabel, "age"},
+			expectedLabels:                    []string{IDLabel, SexLabel, SourceSubjectIDdbGapLabel, "age"},
+			expectedSexIndex:                  1,
+			expectedSourceSubjectIDdbGapIndex: 2,
+		},
+		"non-canonical labels": {
+			row:                               []string{" Subject ID", "age", "source_subject_id_DBGAP", "SEX "},
+			expectedLabels:                    []string{IDLabel, "age", SourceSubjectIDdbGapLabel, SexLabel},
+			expectedSexIndex:                  3,
+			expectedSourceSubjectIDdbGapIndex: 2,
+		},
+		"id only": {
+			row:                               []string{IDLabel},
+			expectedLabels:                    []string{IDLabel},
+			expectedSexIndex:                  -1,
+			expectedSourceSubjectIDdbGapIndex: -1,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			header, isHeader, err := ParseHeaderRow(testCase.row)
+			require.NoError(t, err)
+			require.True(t, isHeader)
+			assert.Equal(t, testCase.expectedLabels, header.Labels())
+			assert.Equal(t, testCase.expectedSexIndex, header.sexIndex)
+			assert.Equal(t, testCase.expectedSourceSubjectIDdbGapIndex, header.sourceSubjectIDdbGapIndex)
+		})
+	}
+}
+
+func TestParseHeaderRow_NotAHeader(t *testing.T) {
+	for name, row := range map[string][]string{
+		"no cells": {},
+		"data row": {"sub-1", "1"},
+		// the subject id label is only recognized in the first column
+		"subject id not first": {SexLabel, IDLabel},
+	} {
+		t.Run(name, func(t *testing.T) {
+			_, isHeader, err := ParseHeaderRow(row)
+			require.NoError(t, err)
+			assert.False(t, isHeader)
+		})
+	}
 }
