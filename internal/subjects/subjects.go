@@ -3,6 +3,7 @@ package subjects
 import (
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 
 	"github.com/pennsieve/dbgap-prep/internal/logging"
@@ -14,7 +15,7 @@ var logger = logging.PackageLogger("subjects")
 
 const FileName = "subjects.xlsx"
 
-const SourceSubjectIDdbGapColumn = "SOURCE_SUBJECT_ID_dbGaP"
+const SourceSubjectIDdbGapLabel = "SOURCE_SUBJECT_ID_dbGaP"
 
 const IDIndex = 0
 const IDLabel = "subject id"
@@ -25,6 +26,8 @@ const IDLabel = "subject id"
 // IDs are stored as they appear in the file so that they still match the samples file.
 const ValidIDPrefix = "sub-"
 const SexLabel = "sex"
+
+const minLength = IDIndex + 1
 
 type Subject struct {
 	ID                   string
@@ -64,9 +67,43 @@ func (s Subject) LogGroup() slog.Attr {
 	)
 }
 
-func IsHeaderRow(row []string) bool {
-	return len(row) > 0 &&
-		row[IDIndex] == IDLabel
+type Header struct {
+	labels []string
+	// sexIndex is -1 if Header does not contain a sex label
+	sexIndex int
+	// sourceSubjectIDdbGapIndex is -1 if Header does not contain a SOURCE_SUBJECT_ID_dbGaP label
+	sourceSubjectIDdbGapIndex int
+}
+
+func (h Header) Labels() []string {
+	return h.labels
+}
+
+func ParseHeaderRow(row []string) (Header, bool, error) {
+	if len(row) == 0 || !utils.EqualIgnoreCaseTrimmed(row[IDIndex], IDLabel) {
+		return Header{}, false, nil
+	}
+
+	sexIndex, sourceSubjectIDdbGapIndex := -1, -1
+	for i, label := range row {
+		if utils.EqualIgnoreCaseTrimmed(label, SexLabel) {
+			sexIndex = i
+		} else if utils.EqualIgnoreCaseTrimmed(label, SourceSubjectIDdbGapLabel) {
+			sourceSubjectIDdbGapIndex = i
+		}
+	}
+
+	// defensive copy that uses the canonical labels even if actual header had different case
+	labels := slices.Clone(row)
+	labels[IDIndex] = IDLabel
+	if sexIndex >= 0 {
+		labels[sexIndex] = SexLabel
+	}
+	if sourceSubjectIDdbGapIndex >= 0 {
+		labels[sourceSubjectIDdbGapIndex] = SourceSubjectIDdbGapLabel
+	}
+
+	return Header{labels: labels, sexIndex: sexIndex, sourceSubjectIDdbGapIndex: sourceSubjectIDdbGapIndex}, true, nil
 }
 
 // HasValidIDPrefix returns true if the given subject ID starts with ValidIDPrefix,
@@ -83,15 +120,12 @@ func HasValidIDPrefix(id string) bool {
 // Blank rows and rows whose ID does not have the ValidIDPrefix prefix are skipped:
 // for those, a nil Subject and a nil error are returned so that the caller skips the row
 // without failing.
-func FromRow(header []string, row []string) (*Subject, error) {
-	if IsHeaderRow(row) {
-		return nil, fmt.Errorf("subjects row is a header")
-	}
+func FromRow(header Header, row []string) (*Subject, error) {
 	if utils.IsBlankRow(row) {
 		logger.Info("skipping blank subjects row")
 		return nil, nil
 	}
-	if len(row) < IDIndex+1 {
+	if len(row) < minLength {
 		return nil, fmt.Errorf("subjects row is too short to contain required columns")
 	}
 	if !HasValidIDPrefix(row[IDIndex]) {
@@ -107,18 +141,19 @@ func FromRow(header []string, row []string) (*Subject, error) {
 		Values: values,
 	}
 
-	for i, label := range header {
-		if i == IDIndex {
-			//skip this since it is already part of the struct
-		} else if i < len(row) {
-			// excelize does not give us empty cells beyond the last non-empty cell
-			if strings.EqualFold(label, SourceSubjectIDdbGapColumn) {
-				subject.SourceSubjectIDdbGap = row[i]
-			} else if strings.EqualFold(label, SexLabel) {
-				subject.Sex = row[i]
-			} else {
-				values[label] = row[i]
-			}
+	for i, label := range header.Labels() {
+		if i >= len(row) {
+			break // excelize does not give us empty cells beyond the last non-empty cell
+		}
+		switch i {
+		case IDIndex:
+			// skip this since it is already part of the struct
+		case header.sexIndex:
+			subject.Sex = row[i]
+		case header.sourceSubjectIDdbGapIndex:
+			subject.SourceSubjectIDdbGap = row[i]
+		default:
+			values[label] = row[i]
 		}
 	}
 	logger.Info("found subject", subject.LogGroup())
@@ -126,5 +161,5 @@ func FromRow(header []string, row []string) (*Subject, error) {
 }
 
 func FromFile(subjectsFile *excelize.File) ([]string, []Subject, error) {
-	return utils.FromFile(subjectsFile, IsHeaderRow, FromRow)
+	return utils.FromFile(subjectsFile, ParseHeaderRow, FromRow)
 }
