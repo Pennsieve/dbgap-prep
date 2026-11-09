@@ -10,14 +10,10 @@ ansiColor('xterm') {
 
   try {
 
+    // Release images are built by the Pennsieve App Store from GitHub releases.
     stage("Run Tests") {
           sh "go test -v ./..."
     }
-
-    stage("Build Container") {
-          sh "docker build ."
-    }
-
 
   } catch (e) {
     slackSend(color: '#b20000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}) by ${authorName}")

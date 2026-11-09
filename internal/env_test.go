@@ -12,7 +12,7 @@ import (
 )
 
 // optionalEnvVarKeys are the env vars that ConfigFromEnv does not require.
-var optionalEnvVarKeys = []string{WorkflowInstanceIDKey, IsTumorKey, PHSAccessionKey}
+var optionalEnvVarKeys = []string{ExecutionRunIDKey, IntegrationIDKey, WorkflowInstanceIDKey, IsTumorKey, PHSAccessionKey}
 
 // setEnvVars sets every required env var to a valid value and unsets the optional ones, so
 // that tests do not depend on the environment they are run in. The values are chosen to
@@ -20,7 +20,6 @@ var optionalEnvVarKeys = []string{WorkflowInstanceIDKey, IsTumorKey, PHSAccessio
 // one of them fails if the field is never assigned.
 func setEnvVars(t *testing.T) {
 	t.Helper()
-	t.Setenv(IntegrationIDKey, "integration-1")
 	t.Setenv(InputDirectoryKey, "/tmp/input")
 	t.Setenv(OutputDirectoryKey, "/tmp/output")
 	t.Setenv(ConsentGroupKey, consentgroup.HMB.String())
@@ -41,7 +40,7 @@ func unsetEnvVar(t *testing.T, key string) {
 
 func TestConfigFromEnv(t *testing.T) {
 	setEnvVars(t)
-	t.Setenv(WorkflowInstanceIDKey, "workflow-instance-1")
+	t.Setenv(ExecutionRunIDKey, "execution-run-1")
 	t.Setenv(IsTumorKey, istumor.YES.String())
 	t.Setenv(PHSAccessionKey, "phs003456.v1.p1")
 
@@ -49,8 +48,7 @@ func TestConfigFromEnv(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, "integration-1", cfg.IntegrationID)
-	assert.Equal(t, "workflow-instance-1", cfg.WorkflowInstanceID)
+	assert.Equal(t, "execution-run-1", cfg.ExecutionRunID)
 	assert.Equal(t, "/tmp/input", cfg.InputDirectory)
 	assert.Equal(t, "/tmp/output", cfg.OutputDirectory)
 	assert.Equal(t, consentgroup.HMB, cfg.ConsentGroup)
@@ -77,7 +75,7 @@ func TestConfigFromEnv_OptionalVarsUnset(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Empty(t, cfg.WorkflowInstanceID)
+	assert.Empty(t, cfg.ExecutionRunID)
 	assert.Empty(t, cfg.PHSAccession)
 	assert.Equal(t, istumor.NO, cfg.IsTumor)
 }
@@ -90,7 +88,6 @@ func TestConfigFromEnv_Errors(t *testing.T) {
 		key   string
 		value string
 	}{
-		"missing integration id":   {key: IntegrationIDKey},
 		"missing input directory":  {key: InputDirectoryKey},
 		"missing output directory": {key: OutputDirectoryKey},
 		"invalid consent group":    {key: ConsentGroupKey, value: "not-a-consent-group"},
@@ -110,6 +107,28 @@ func TestConfigFromEnv_Errors(t *testing.T) {
 
 			assert.Error(t, err)
 			assert.Nil(t, cfg)
+		})
+	}
+}
+
+func TestLookupExecutionRunIDEnvVar(t *testing.T) {
+	for name, testCase := range map[string]struct {
+		set      map[string]string
+		expected string
+	}{
+		"none set":             {set: map[string]string{}, expected: ""},
+		"execution run id":     {set: map[string]string{ExecutionRunIDKey: "run-1", IntegrationIDKey: "integration-1"}, expected: "run-1"},
+		"integration id":       {set: map[string]string{IntegrationIDKey: "integration-1", WorkflowInstanceIDKey: "instance-1"}, expected: "integration-1"},
+		"workflow instance id": {set: map[string]string{WorkflowInstanceIDKey: "instance-1"}, expected: "instance-1"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			for _, key := range []string{ExecutionRunIDKey, IntegrationIDKey, WorkflowInstanceIDKey} {
+				unsetEnvVar(t, key)
+			}
+			for key, value := range testCase.set {
+				t.Setenv(key, value)
+			}
+			assert.Equal(t, testCase.expected, LookupExecutionRunIDEnvVar())
 		})
 	}
 }
