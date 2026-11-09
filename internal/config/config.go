@@ -7,12 +7,11 @@ import (
 )
 
 type Config struct {
-	IntegrationID      string
-	WorkflowInstanceID string
-	InputDirectory     string
-	OutputDirectory    string
-	ConsentGroup       consentgroup.Group
-	AnalyteType        analytetype.Type
-	IsTumor            istumor.Value
-	PHSAccession       string
+	ExecutionRunID  string
+	InputDirectory  string
+	OutputDirectory string
+	ConsentGroup    consentgroup.Group
+	AnalyteType     analytetype.Type
+	IsTumor         istumor.Value
+	PHSAccession    string
 }

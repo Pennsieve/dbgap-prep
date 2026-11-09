@@ -12,6 +12,9 @@ import (
 	"github.com/pennsieve/dbgap-prep/internal/enums/istumor"
 )
 
+const ExecutionRunIDKey = "EXECUTION_RUN_ID"
+
+// Older names for EXECUTION_RUN_ID, still set by the platform for processors that read them.
 const IntegrationIDKey = "INTEGRATION_ID"
 const WorkflowInstanceIDKey = "WORKFLOW_INSTANCE_ID"
 const InputDirectoryKey = "INPUT_DIR"
@@ -24,12 +27,8 @@ const PHSAccessionKey = "PHS_ACCESSION"
 func ConfigFromEnv() (*config.Config, error) {
 	var cfg config.Config
 	var err error
-	cfg.IntegrationID, err = LookupRequiredEnvVar(IntegrationIDKey)
-	if err != nil {
-		return nil, err
-	}
-	// Not clear if this will be present, so not required.
-	cfg.WorkflowInstanceID = os.Getenv(WorkflowInstanceIDKey)
+	// Only used in logs, so not required.
+	cfg.ExecutionRunID = LookupExecutionRunIDEnvVar()
 	cfg.InputDirectory, err = LookupRequiredEnvVar(InputDirectoryKey)
 	if err != nil {
 		return nil, err
@@ -52,6 +51,17 @@ func ConfigFromEnv() (*config.Config, error) {
 	}
 	cfg.PHSAccession = os.Getenv(PHSAccessionKey)
 	return &cfg, nil
+}
+
+// LookupExecutionRunIDEnvVar returns the run's ID from EXECUTION_RUN_ID, falling back to the
+// older INTEGRATION_ID and WORKFLOW_INSTANCE_ID, or "" if none is set.
+func LookupExecutionRunIDEnvVar() string {
+	for _, key := range []string{ExecutionRunIDKey, IntegrationIDKey, WorkflowInstanceIDKey} {
+		if value := os.Getenv(key); len(value) > 0 {
+			return value
+		}
+	}
+	return ""
 }
 
 func LookupRequiredEnvVar(key string) (string, error) {

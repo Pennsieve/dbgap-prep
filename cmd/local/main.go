@@ -91,20 +91,19 @@ func main() {
 	}
 
 	cfg := &config.Config{
-		IntegrationID:      "NA",
-		WorkflowInstanceID: "NA",
-		InputDirectory:     inputDirectory,
-		OutputDirectory:    outputDirectory,
-		ConsentGroup:       cg,
-		AnalyteType:        at,
-		IsTumor:            it,
-		PHSAccession:       phsAccession,
+		ExecutionRunID:  "NA",
+		InputDirectory:  inputDirectory,
+		OutputDirectory: outputDirectory,
+		ConsentGroup:    cg,
+		AnalyteType:     at,
+		IsTumor:         it,
+		PHSAccession:    phsAccession,
 	}
 
 	dbgap := app.NewApp(cfg)
 
 	logger.Info("created local dbgap-prep application",
-		slog.String("integrationID", dbgap.Config.IntegrationID),
+		slog.String("executionRunID", dbgap.Config.ExecutionRunID),
 		slog.String("inputDirectory", dbgap.Config.InputDirectory),
 		slog.String("outputDirectory", dbgap.Config.OutputDirectory),
 		slog.String("consentGroup", dbgap.Config.ConsentGroup.String()),

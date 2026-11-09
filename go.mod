@@ -3,7 +3,6 @@ module github.com/pennsieve/dbgap-prep
 go 1.27
 
 require (
-	github.com/aws/aws-lambda-go v1.54.0
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.11.1
 	github.com/xuri/excelize/v2 v2.10.1

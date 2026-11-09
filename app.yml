@@ -1,16 +1,26 @@
+# yaml-language-server: $schema=https://schemas.pennsieve.io/app-manifest/v1.json
 schemaVersion: '1.0'
 application:
   name: dbgap-prep
-  description: Creates files for dbGaP submission
+  description: >-
+    Creates files for dbGaP submission (subject consent, subject-sample mapping, subject phenotypes,
+    sample attributes, their data dictionaries, and the data availability and repository split)
+    from a dataset's dataset_description.xlsx, subjects.xlsx and samples.xlsx.
   type: processor
+  tags:
+    - dbgap
+    - data-submission
+    - sparc
+    - genomics
 runtime:
   cpu: 1024
   memory: 2048
+  # Pennsieve also runs it as a Lambda step when it fits; listing lambda is not needed.
   computeTypes:
     - standard
-    - lambda
 parameters:
   - name: CONSENT_GROUP
+    label: Consent group
     type: string
     required: true
     description: Sets the 2b CONSENT text. 'Other' will have to be replaced manually before submission.
@@ -19,6 +29,7 @@ parameters:
       - HMB
       - Other
   - name: ANALYTE_TYPE
+    label: Analyte type
     type: string
     required: true
     description: Applied to every 6a row
@@ -27,6 +38,7 @@ parameters:
       - RNA
       - DNA/RNA
   - name: IS_TUMOR
+    label: Tumor samples
     type: string
     description: The tumor status of the samples. For non-cancer studies, the values of IS_TUMOR should be No.
     defaultValue: 'No'
@@ -34,6 +46,33 @@ parameters:
       - 'Yes'
       - 'No'
   - name: PHS_ACCESSION
+    label: dbGaP PHS accession
     type: string
     required: false
     description: dbGaP PHS Accession. If not provided, Data Availability and Repository Split file will contain placeholder.
+# What the app reads (INPUT_DIR) and writes (OUTPUT_DIR).
+inputs:
+  - name: sds-metadata
+    description: The dataset's dataset_description.xlsx, subjects.xlsx and samples.xlsx.
+    mediaTypes:
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+outputs:
+  - name: dbgap-files
+    description: >-
+      The dbGaP submission files: 2a/2b, 3a/3b, 5a/5b and 6a/6b DS and DD spreadsheets, and
+      Data_Availability_and_Repository_Split.txt. 3a/3b and 6a/6b are only written when there are
+      consented samples with a dbGaP study ID.
+    mediaTypes:
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      - text/plain
+
+# How a release is tested before it is made public (app-deploy-service docs/app-manifest-review.md):
+# the app is run on the files in review-input/, which produce every dbGaP file.
+review:
+  version: 1
+  inputs:
+    sds-metadata:
+      files: [review-input/*]
+  parameters:
+    CONSENT_GROUP: GRU
+    ANALYTE_TYPE: DNA
